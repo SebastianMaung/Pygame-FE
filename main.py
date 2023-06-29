@@ -52,7 +52,7 @@ def ReloadScale():
     print(SCREENY//asp[1],"screenx divided by width")
     print(SCREENX,SCREENY)
 pygame.init()
-asp = (250,144)
+asp = (260,144)
 screen = pygame.display.set_mode((1080, 720), pygame.RESIZABLE)
 #SCREENX, SCREENY = screen.get_size()
 #print(SCREENX//asp[0],"screenx divided by width")
