@@ -36,11 +36,13 @@ scale = 3
 def ReloadScale():
     global scale, GRID_SIZE, WIDTH, HEIGHT, GRID_ROWS, GRID_COLS, SCREENX, SCREENY
     SCREENX, SCREENY = screen.get_size()
-    if SCREENX//asp[0] == SCREENY//asp[1]:
-        scale = SCREENX//asp[0]
-        print("OK")
-    else:
-        scale = scale
+    #if SCREENX//asp[0] == SCREENY//asp[1] and not SCREENX//asp[0] == 0:
+    #    scale = SCREENX//asp[0]
+    #    print("OK")
+    #else:
+    #    scale = scale
+    if SCREENX/asp[0] > 1:
+        scale = SCREENX/asp[0]
     GRID_SIZE = 10 * scale
     WIDTH = asp[0]*scale
     HEIGHT = asp[1]*scale
@@ -48,8 +50,16 @@ def ReloadScale():
     GRID_ROWS = HEIGHT // GRID_SIZE
     GRID_COLS = WIDTH // GRID_SIZE
     SCREENX, SCREENY = screen.get_size()
+
+    WIDTH = round(WIDTH, 0)
+    HEIGHT = round(HEIGHT, 0)
+    GRID_SIZE = int(round(GRID_SIZE, 0))
+    GRID_ROWS = int(round(GRID_ROWS, 0))
+    GRID_COLS = int(round(GRID_COLS, 0))
+
     print(SCREENX//asp[0],"screenx divided by width")
-    print(SCREENY//asp[1],"screenx divided by width")
+    #print(SCREENX)
+    print(SCREENY//asp[1],"screeny divided by width")
     print(SCREENX,SCREENY)
 pygame.init()
 asp = (260,144)
@@ -216,7 +226,8 @@ def sleep(amount):
     ctime = pygame.time.get_ticks()
     while pygame.time.get_ticks() - ctime < amount*1000:
         #a += 1
-        draw_rectangle(screen, 0, 0, (RED))
+        draw_square((WIDTH//2, HEIGHT//2), amount*2, (RED))
+        #draw_rectangle(screen, WIDTH//2, HEIGHT //2, (RED))
         #print(a)
 
         #clock.tick(60)  # Limits the frame rate to 60 FPS
