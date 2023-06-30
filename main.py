@@ -34,7 +34,7 @@ def Constants():
 # Initialize Pygame
 scale = 3
 def ReloadScale():
-    global scale, GRID_SIZE, WIDTH, HEIGHT, GRID_ROWS, GRID_COLS, SCREENX, SCREENY
+    global scale, GRID_SIZE, WIDTH, HEIGHT, GRID_ROWS, GRID_COLS, SCREENX, SCREENY, CenterOfScreen
     SCREENX, SCREENY = screen.get_size()
     #if SCREENX//asp[0] == SCREENY//asp[1] and not SCREENX//asp[0] == 0:
     #    scale = SCREENX//asp[0]
@@ -56,7 +56,7 @@ def ReloadScale():
     GRID_SIZE = int(round(GRID_SIZE, 0))
     GRID_ROWS = int(round(GRID_ROWS, 0))
     GRID_COLS = int(round(GRID_COLS, 0))
-
+    CenterOfScreen = (SCREENX//2, SCREENY//2)
     print(SCREENX//asp[0],"screenx divided by width")
     #print(SCREENX)
     print(SCREENY//asp[1],"screeny divided by width")
@@ -254,7 +254,6 @@ def FightScene():
     #menu.disable()
     RectDim = [200,100] 
     ImgSize = [60, 40] 
-    draw_rectangle(screen, RectDim[0]*scale, RectDim[1]*scale, (255,255,255))
     #time.sleep(1)
     # Load and display the first GIF
     font = pygame.font.Font(None, 36)
@@ -271,22 +270,23 @@ def FightScene():
         gif1 = pygame.image.load("assests/units/friendly/swordmaster-sword-a/slash-"+str(i)+".png")  # Replace "gif1.gif" with the actual file path of your first GIF
         gif1 = pygame.transform.scale(gif1, (ImgSize[0]*scale*5, ImgSize[1]*scale*5))
         gif1_rect = gif1.get_rect()
+        print(gif1_rect)
         gif1_rect = ((RectDim[0]-175)*scale, (RectDim[1]-75)*scale)  # Adjusting the position of the GIF may cause some issues with scaling and positioning
         screen.blit(gif1, gif1_rect)
         pygame.display.flip()
 
     # Load and display the second GIF
     screen.fill((0, 0, 0, 0))
-    draw_rectangle(screen, RectDim[0]*scale, RectDim[1]*scale, (255,255,255))
+    draw_rectangle(screen, RectDim[0]*scale, RectDim[1]*scale, (0, 98, 255))
     gif1 = pygame.transform.scale(gif1, (ImgSize[0]*scale*2, ImgSize[1]*scale*2))
     gif1_rect = gif1.get_rect()
-    gif1_rect = (RectDim[0]+100, RectDim[1]+000)  # Adjusting the position of the GIF may cause some issues with scaling and positioning
+    gif1_rect = ((RectDim[0]-85)*scale, (RectDim[1]-55)*scale)  # Adjusting the position of the GIF may cause some issues with scaling and positioning
     screen.blit(gif1, gif1_rect)
     gif2 = pygame.image.load("assests/units/friendly/swordmaster-sword-a/slash-0.png")  # Replace "gif2.gif" with the actual file path of your second GIF
     gif2 = pygame.transform.scale(gif2, (ImgSize[0]*scale*2, ImgSize[1]*scale*2))
     gif2= pygame.transform.flip(gif2, True, False)
     gif2_rect = gif2.get_rect()
-    gif2_rect = (RectDim[0]-75, RectDim[1]+000)
+    gif2_rect = ((RectDim[0]-175)*scale, (RectDim[1]-55)*scale)
     screen.blit(gif2, gif2_rect)
 
     # Display text on the screen
@@ -338,7 +338,7 @@ PlacedOnAnotherUnit = False
 PlacedCorrectly = False
 # Game loop
 OldWindowSize = [SCREENX, SCREENY] = screen.get_size()
-
+ReloadScale()
 while True:
     SCREENX, SCREENY = screen.get_size()
     #print(SCREENX//asp[0],"screenx divided by width")
