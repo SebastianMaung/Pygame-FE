@@ -1,8 +1,10 @@
+import random
 import pygame
 import pygame_menu
 import time
+
 #pygame_menu controls
-import os
+import os 
 import pygame_menu.controls as ctrl
 ctrl.KEY_APPLY = pygame.K_x
 import sys #only used for sys.exit()
@@ -13,7 +15,7 @@ def Constants():
     InBattle = False
     #WIDTH = asp[0]*scale
     #HEIGHT = asp[1]*scale
-    FPS = 20
+    FPS = 60
     # Constants
     #WIDTH = asp[0]*scale
     #HEIGHT = asp[1]*scale
@@ -49,6 +51,10 @@ def ReloadScale():
     GRID_SIZE = 10 * scale
     GRID_ROWS = HEIGHT // GRID_SIZE
     GRID_COLS = WIDTH // GRID_SIZE
+    if GRID_ROWS != 14:
+        GRID_ROWS = 14
+    if GRID_COLS != 26:
+        GRID_COLS = 26
     SCREENX, SCREENY = screen.get_size()
 
     WIDTH = round(WIDTH, 0)
@@ -56,13 +62,14 @@ def ReloadScale():
     GRID_SIZE = int(round(GRID_SIZE, 0))
     GRID_ROWS = int(round(GRID_ROWS, 0))
     GRID_COLS = int(round(GRID_COLS, 0))
+    #print(GRID_ROWS, GRID_COLS)
     CenterOfScreen = (SCREENX//2, SCREENY//2)
-    print(SCREENX//asp[0],"screenx divided by width")
+    #print(SCREENX//asp[0],"screenx divided by width")
     #print(SCREENX)
-    print(SCREENY//asp[1],"screeny divided by width")
-    print(SCREENX,SCREENY)
+    #print(SCREENY//asp[1],"screeny divided by width")
+    #print(SCREENX,SCREENY)
 pygame.init()
-asp = (260,144)
+asp = (264,144)
 screen = pygame.display.set_mode((1080, 720), pygame.RESIZABLE)
 #SCREENX, SCREENY = screen.get_size()
 #print(SCREENX//asp[0],"screenx divided by width")
@@ -86,7 +93,7 @@ is_in_menu = True
 #timers
 event_500ms = pygame.USEREVENT + 1
 pygame.time.set_timer(event_500ms, 500)
-event_5000ms = pygame.USEREVENT + 1
+event_5000ms = pygame.USEREVENT + 2
 pygame.time.set_timer(event_5000ms, 5000)
 # cursor position
 controlok = True
@@ -94,8 +101,8 @@ cursor_row = 0
 cursor_col = 0
 global light_blue_blocks
 # Block positions
-blue_blocks = [[2, 3,"Lyndis",100], [4, 5,"Marth", 100]]
-red_blocks = [[0, 0, "1A",100], [13,23, "1A",100]]
+blue_blocks = [[2, 3,"Lyndis",100, "Rank1Swords"], [4, 5,"Marth", 100, "Rank1Swords"]]
+red_blocks = [[0, 0, "1A",100], [13,23, "1B",100]]
 print(red_blocks)
 menu_blocks = []
 light_blue_blocks = []
@@ -182,7 +189,7 @@ def rangeout(range1):
         if (cursor_row, cursor_col) == (light_blue_blocks[i][0], light_blue_blocks[i][1]):
             light_blue_blocks.pop(i)
 def attackrange(UnitClass):
-    if UnitClass == "Lyndis":
+    if UnitClass == "Rank1Swords":
         print("Lyndis, Class One")
         for i in range( len(ClassOneRange)):
             light_red_blocks.append((cursor_row + ClassOneRange[i][0], cursor_col + ClassOneRange[i][1]))
@@ -196,7 +203,6 @@ def show_small_menu(options):
         screen.fill(TRANSPARENT1)
         draw_menu_options(options, selected_option)
         pygame.display.flip()
-
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP:
@@ -222,18 +228,18 @@ def draw_square(position, size, color):
     square_rect = pygame.Rect(position[0] * GRID_SIZE, position[1] * GRID_SIZE, size, size)
     pygame.draw.rect(screen, color, square_rect)
 
-def sleep(amount):    
-    ctime = pygame.time.get_ticks()
-    while pygame.time.get_ticks() - ctime < amount*1000:
-        #a += 1
-        draw_square((WIDTH//2, HEIGHT//2), amount*2, (RED))
-        #draw_rectangle(screen, WIDTH//2, HEIGHT //2, (RED))
-        #print(a)
 
-        #clock.tick(60)  # Limits the frame rate to 60 FPS
-    
+def csleep(amount):
+    start_time = pygame.time.get_ticks()
+    duration = amount  # Duration in milliseconds
+    while pygame.time.get_ticks() - start_time < duration:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
 
-def draw_rectangle(screen, width, height, color):
+
+def draw_rectangle(screen, width, height, color, JustGetDim=False):
     # Get the dimensions of the screen
     screen_width = screen.get_width()
     screen_height = screen.get_height()
@@ -247,13 +253,43 @@ def draw_rectangle(screen, width, height, color):
     rectangle.fill(color)
 
     # Draw the rectangle on the screen
-    screen.blit(rectangle, (x, y))
+    if JustGetDim == False:
+        return (x, y, width, height)
+    else:
+        screen.blit(rectangle, (x, y))
+        return (x, y, width, height)  # Return the dimensions when JustGetDim is True
 
 
+
+#def DisplayText(text, position):
+#    font = pygame.font.Font(None, 24)  # Choose the font and size you want
+#    text_surface = font.render(text, True, (255, 255, 255))  # Render the text
+#    screen.blit(text_surface, position)  # Blit the text surface onto the screen
+
+
+def DisplayText(screen, text, font_name, font_size, color, position, align="left"):
+    font = pygame.font.SysFont(font_name, font_size)
+    text_surface = font.render(text, True, color)
+
+    if align == "center":
+        text_rect = text_surface.get_rect(center=position)
+    elif align == "right":
+        text_rect = text_surface.get_rect(topright=position)
+    else:
+        text_rect = text_surface.get_rect(topleft=position)
+
+    screen.blit(text_surface, text_rect)
+
+def FriendlyAttackLogic(min=0, max=0, Class=""):
+    if Class == "Rank1Swords":
+        pass
+    return ["Hit", 10]
+    #For now, just a placeholder
+    
 def FightScene():
     #menu.disable()
-    RectDim = [200,100] 
-    ImgSize = [60, 40] 
+    RectDim = (200,100)
+    ImgSize = (60, 40)
     #time.sleep(1)
     # Load and display the first GIF
     font = pygame.font.Font(None, 36)
@@ -261,42 +297,141 @@ def FightScene():
     pngs = sum(1 for file in os.listdir('assests/units/friendly/swordmaster-sword-a/') if file.endswith('.png'))
     gif1 = pygame.image.load("assests/units/friendly/swordmaster-sword-a/slash-0.png")  # Replace "gif1.gif" with the actual file path of your first GIF
     #text = font.render("Fire Embdlem: Blazing Sword", True, (255, 255, 255))
+    wait = pygame.USEREVENT + 3
+    pygame.time.set_timer(wait, 70)
+    #a = 0
+    i = 0
     for i in range (pngs):
-        if(i==pngs-1):
-            break
+        #print(i)
         screen.fill((0, 0, 0, 0))
-        pygame.time.delay(70)  # Delay in milliseconds (0.07 seconds)
+        csleep(70)
+        pygame.time.delay(0)  # Delay in milliseconds (0.07 seconds)
+        #pygame.time.delay(70)  # Delay in milliseconds (0.07 seconds)
         #draw_rectangle(screen, ImgSize[0]*scale*2, ImgSize[1]*scale*2, (220,220,220))
         gif1 = pygame.image.load("assests/units/friendly/swordmaster-sword-a/slash-"+str(i)+".png")  # Replace "gif1.gif" with the actual file path of your first GIF
         gif1 = pygame.transform.scale(gif1, (ImgSize[0]*scale*5, ImgSize[1]*scale*5))
         gif1_rect = gif1.get_rect()
-        print(gif1_rect)
-        gif1_rect = ((RectDim[0]-175)*scale, (RectDim[1]-75)*scale)  # Adjusting the position of the GIF may cause some issues with scaling and positioning
+        #print(gif1_rect)
+        gif1_rect = ((RectDim[0]-175)*scale, (RectDim[1]-105)*scale)  # Adjusting the position of the GIF may cause some issues with scaling and positioning
         screen.blit(gif1, gif1_rect)
         pygame.display.flip()
+        i+=1
+        if i > pngs-2:
+            break        
+    '''
+    while i < pngs - 2:
+        #print("A")
+        for event in pygame.event.get():
+            if event.type == wait:
+                print(i)
 
+        #for i in range (pngs):
+        #    if(i==pngs-1):
+        #        break
+                screen.fill((0, 0, 0, 0))
+                pygame.time.delay(70)  # Delay in milliseconds (0.07 seconds)
+                #draw_rectangle(screen, ImgSize[0]*scale*2, ImgSize[1]*scale*2, (220,220,220))
+                gif1 = pygame.image.load("assests/units/friendly/swordmaster-sword-a/slash-"+str(i)+".png")  # Replace "gif1.gif" with the actual file path of your first GIF
+                gif1 = pygame.transform.scale(gif1, (ImgSize[0]*scale*5, ImgSize[1]*scale*5))
+                gif1_rect = gif1.get_rect()
+                #print(gif1_rect)
+                gif1_rect = ((RectDim[0]-175)*scale, (RectDim[1]-105)*scale)  # Adjusting the position of the GIF may cause some issues with scaling and positioning
+                screen.blit(gif1, gif1_rect)
+                pygame.display.flip()
+                i+=1
+                if i < pngs-2:
+                    break
+    '''
+    
+    #time.sleep(1)
+
+    # Load and display the second GIF
     # Load and display the second GIF
     screen.fill((0, 0, 0, 0))
     draw_rectangle(screen, RectDim[0]*scale, RectDim[1]*scale, (0, 98, 255))
+    RectanglePos = draw_rectangle(screen, RectDim[0]*scale, RectDim[1]*scale, (0, 98, 255), JustGetDim=True)
+    #print(RectanglePos)
+    #print(scale, "scale")
+    #exit()
+    #print(scale, WIDTH, HEIGHT)
+    #exit()
+    gif1 = pygame.image.load("assests/units/friendly/swordmaster-sword-a/slash-0.png")
     gif1 = pygame.transform.scale(gif1, (ImgSize[0]*scale*2, ImgSize[1]*scale*2))
-    gif1_rect = gif1.get_rect()
-    gif1_rect = ((RectDim[0]-85)*scale, (RectDim[1]-55)*scale)  # Adjusting the position of the GIF may cause some issues with scaling and positioning
+    #ImgOne is on the right
+    Nscale = 4.090909090909091
+    ImgOneXOffset =  340/Nscale #-300 is original
+    ImgOneYOffset = 50/Nscale #-200 is original
+    ImgTwoXOffset = -30/Nscale
+    ImgTwoYOffset = 50/Nscale
+    #center1=(screen.get_width() // 2, screen.get_height()-1 //2)
+    #print(center1)
+    scale_offset = scale * 2
+    #mouse_pos = pygame.mouse.get_pos()
+    #png dimensions are 240x160 pixels 
+    gif1_rect = pygame.Rect(
+        int((RectanglePos[0]) + ImgOneXOffset*scale),  # Apply the x-axis offset and scale
+        int((RectanglePos[1]) + ImgOneYOffset *scale),  # Apply the y-axis offset and scale
+        #int((0) * scale),  # Apply the x-axis offset and scale
+        #int((0) * scale),  # Apply the x-axis offset and scale
+        int(ImgSize[0] * scale_offset),  # Scale the width
+        int(ImgSize[1] * scale_offset)   # Scale the height
+    )
+   
     screen.blit(gif1, gif1_rect)
-    gif2 = pygame.image.load("assests/units/friendly/swordmaster-sword-a/slash-0.png")  # Replace "gif2.gif" with the actual file path of your second GIF
+    
+    #print(RectDim,"RECTDIM")
+    #print(scale,"SCALE")
+    #gif1_rect = ((0-x_offset), (0-y_offset))  # Adjusting the position of the GIF may cause some issues with scaling and positioning
+    #gif1 = pygame.transform.scale(gif1, gif1_rect.size)
+    gif2 = pygame.image.load("assests/units/friendly/swordmaster-sword-a/slash-5.png")
     gif2 = pygame.transform.scale(gif2, (ImgSize[0]*scale*2, ImgSize[1]*scale*2))
-    gif2= pygame.transform.flip(gif2, True, False)
+    gif2 = pygame.transform.flip(gif2, True, False)
     gif2_rect = gif2.get_rect()
-    gif2_rect = ((RectDim[0]-175)*scale, (RectDim[1]-55)*scale)
+    gif2_rect = pygame.Rect(
+        int((RectanglePos[0]) + ImgTwoXOffset*scale),  # Apply the x-axis offset and scale
+        int((RectanglePos[1]) + ImgTwoYOffset *scale),  # Apply the y-axis offset and scale
+        int(ImgSize[0] * scale_offset),
+        int(ImgSize[1] * scale_offset)
+    )
+    #((gif2_rect[0]//scale+20) * scale,(RectanglePos[1]) + ImgTwoYOffset *scale)
+    #gif2 = pygame.transform.scale(gif2, gif2_rect.size)
     screen.blit(gif2, gif2_rect)
+    FriendlyAttackData = FriendlyAttackLogic()
+    if FriendlyAttackData[0] == "Hit":
+        for i in range(5):
+            print(i)
+            DisplayText(screen, "Hit for "+str(FriendlyAttackData[1])+"!", "Arial", round(36.0//Nscale*scale)+1, (255, 255, 255), ((gif2_rect[0]//scale+20+i) * scale,gif2_rect[1]//scale*scale+i))
+        #DisplayText(screen, "Hello, World!", "Arial", 36, (255, 255, 255), (float(gif2_rect[0])//Nscale+20, float(gif2_rect[1])//Nscale)*scale)
+        #DisplayText("Hit", (gif2_rect[0], gif2_rect[1]))
 
     # Display text on the screen
-    text = font.render(" ", True, (255, 255, 255))
+    text = font.render("aaa ", True, (255, 255, 255))
     text_rect = text.get_rect(center=(screen.get_width() // 2, screen.get_height() - 50))
     screen.blit(text, text_rect)
-
+    pygame.display.flip()
+    csleep(4000)
+    screen.fill((0, 0, 0, 0))
     pygame.display.flip()
 
-    sleep(5)
+
+    '''
+    i = 0
+    max = 50
+    while i < max:
+        #print("A")
+        for event in pygame.event.get():
+            if event.type == wait:
+                print(i)
+
+        #for i in range (pngs):
+        #    if(i==pngs-1):
+        #        break
+                pygame.time.delay(1)  # Delay in milliseconds (0.07 seconds)
+                i+=1
+                if i < max:
+                    break
+                #print(i)
+    '''
     #exit()
     #ctime = pygame.time.get_ticks()
     #while pygame.time.get_ticks() - ctime < 10000:
@@ -325,6 +460,11 @@ def FightScene():
 
 
 
+def print_cursor_position():
+    pass
+    #mouse_pos = pygame.mouse.get_pos()
+    #print(scale)
+    #print("Cursor position:", mouse_pos)
 
 start_cursor_blink()
 stop_cursor_blink()
@@ -346,9 +486,9 @@ while True:
     NewWindowSize = [SCREENX, SCREENY]
     if NewWindowSize != OldWindowSize:
         ReloadScale()
-        print (scale)
-        print("window resized")
-        #screen = pygame.display.set_mode((SCREENX, SCREENY), pygame.RESIZABLE)
+        #print (scale)
+        #print("window resized")
+        #scree1n = pygame.display.set_mode((SCREENX, SCREENY), pygame.RESIZABLE)
         #scale = SCREENX//asp[0]
 
         OldWindowSize = NewWindowSize
@@ -357,7 +497,7 @@ while True:
     WIDTH = asp[0]*scale
     HEIGHT = asp[1]*scale
     #id = ""
-    #screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
+    #scree1n = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
     global blinkingc
     #blinkingc = True
     #start_cursor_blink()
@@ -370,9 +510,10 @@ while True:
             sys.exit()
         if event.type == event_5000ms:
             pass
-            #screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
+            #scree1n = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
         if event.type == event_500ms and blinkingc:
             cursor_visible = not cursor_visible
+        print_cursor_position()
         if event.type == pygame.KEYDOWN:
             if is_in_menu and event.key == pygame.K_RETURN:
                 start_game()
@@ -386,7 +527,7 @@ while True:
                 elif event.key == pygame.K_RIGHT and cursor_col < GRID_COLS - 1 and controlok:
                     cursor_col += 1
                 elif event.key == pygame.K_x:
-                    if selecting:
+                    if selecting: 
                         #print("selecting end")
                         if (cursor_row, cursor_col) in light_blue_blocks: #if in range
                             print("attempting to place")
@@ -396,7 +537,7 @@ while True:
                                     PlacedOnAnotherUnit = True
                                     break
                                 #print(id)
-                            for i in range (len(blue_blocks)):
+                            for i in range (len(blue_blocks)): 
                                 if id == blue_blocks[i][2] and not PlacedOnAnotherUnit: #while going through blue blocks, if id matches the id of the unit selected pop it and place it on the new grid space
                                     blue_blocks.pop(i)
                                     clearrange()
@@ -457,6 +598,7 @@ while True:
                                 print("unit already moved")
                                 break
                             clearrange()
+                            
                             id = blue_blocks[i][2]
                             print(id) #print id of unit selected
                             print("blue")
