@@ -5,12 +5,15 @@ import time
 
 #pygame_menu controls
 import os 
+
+os.chdir(str(os. getcwd()))
+custom_theme = pygame_menu.themes.Theme(background_color=(0, 0, 0, 0))
 import pygame_menu.controls as ctrl
 ctrl.KEY_APPLY = pygame.K_x
 import sys #only used for sys.exit()
 def Constants():
     #scale = 2
-    global InBattle, BLACK, WHITE, LIGHT_BLUE, LIGHT_RED, BLUE, RED, TRANSPARENT1,  FPS
+    global InBattle, BLACK, WHITE, LIGHT_BLUE, LIGHT_RED, BLUE, RED, ORANGE, TRANSPARENT1,  FPS
     #scale = 3
     InBattle = False
     #WIDTH = asp[0]*scale
@@ -19,11 +22,12 @@ def Constants():
     # Constants
     #WIDTH = asp[0]*scale
     #HEIGHT = asp[1]*scale
-    #print(WIDTH, HEIGHT)
+    #(WIDTH, HEIGHT)
     #GRID_SIZE = 10 * scale
     #GRID_ROWS = HEIGHT // GRID_SIZE
     #GRID_COLS = WIDTH // GRID_SIZE
-    #print(GRID_ROWS, GRID_COLS)
+    #(GRID_ROWS, GRID_COLS)
+    ORANGE = (255, 128, 0)
     BLACK = (0, 0, 0)
     WHITE = (255, 255, 255)
     LIGHT_BLUE = (173, 216, 230)
@@ -40,7 +44,7 @@ def ReloadScale():
     SCREENX, SCREENY = screen.get_size()
     #if SCREENX//asp[0] == SCREENY//asp[1] and not SCREENX//asp[0] == 0:
     #    scale = SCREENX//asp[0]
-    #    print("OK")
+    #    ##print("OK")
     #else:
     #    scale = scale
     if SCREENX/asp[0] > 1:
@@ -62,18 +66,18 @@ def ReloadScale():
     GRID_SIZE = int(round(GRID_SIZE, 0))
     GRID_ROWS = int(round(GRID_ROWS, 0))
     GRID_COLS = int(round(GRID_COLS, 0))
-    #print(GRID_ROWS, GRID_COLS)
+    #(GRID_ROWS, GRID_COLS)
     CenterOfScreen = (SCREENX//2, SCREENY//2)
-    #print(SCREENX//asp[0],"screenx divided by width")
-    #print(SCREENX)
-    #print(SCREENY//asp[1],"screeny divided by width")
-    #print(SCREENX,SCREENY)
+    #(SCREENX//asp[0],"screenx divided by width")
+    #(SCREENX)
+    #(SCREENY//asp[1],"screeny divided by width")
+    #(SCREENX,SCREENY)
 pygame.init()
 asp = (264,144)
 screen = pygame.display.set_mode((1080, 720), pygame.RESIZABLE)
 #SCREENX, SCREENY = screen.get_size()
-#print(SCREENX//asp[0],"screenx divided by width")
-#print(SCREENX,SCREENY)
+#(SCREENX//asp[0],"screenx divided by width")
+#(SCREENX,SCREENY)
 #ReloadScale()
 Constants()
 start_time = pygame.time.get_ticks()
@@ -102,8 +106,13 @@ cursor_col = 0
 global light_blue_blocks
 # Block positions
 blue_blocks = [[2, 3,"Lyndis",100, "Rank1Swords"], [4, 5,"Marth", 100, "Rank1Swords"]]
-red_blocks = [[0, 0, "1A",100], [13,23, "1B",100]]
-print(red_blocks)
+red_blocks = [[0, 0, "Footsoldier",100, "Rank1Swords"], [1,1, "Footsoldier",100, "Rank1Swords"]]
+EnemyPositions = []
+for i in range(len(red_blocks)):
+    EnemyPositions.append((red_blocks[i][0],red_blocks[i][1]))
+print(EnemyPositions)
+##print(red_blocks)
+AdjacentBlocks = []
 menu_blocks = []
 light_blue_blocks = []
 light_red_blocks = []
@@ -133,6 +142,9 @@ def draw_blocks():
     for block in blue_blocks:
         rect = pygame.Rect(block[1] * GRID_SIZE, block[0] * GRID_SIZE, GRID_SIZE, GRID_SIZE)
         pygame.draw.rect(screen, BLUE, rect)
+    for block in AdjacentBlocks:
+        rect = pygame.Rect(block[1] * GRID_SIZE, block[0] * GRID_SIZE, GRID_SIZE, GRID_SIZE)
+        pygame.draw.rect(screen, ORANGE, rect)
     for block in red_blocks:
         rect = pygame.Rect(block[1] * GRID_SIZE, block[0] * GRID_SIZE, GRID_SIZE, GRID_SIZE)
         pygame.draw.rect(screen, RED, rect)
@@ -169,31 +181,40 @@ def stop_cursor_blink():
 def clearrange():
     light_red_blocks.clear()
     light_blue_blocks.clear()
-def rangeout(range1):
+def rangeout(range1, color=LIGHT_BLUE):
+    color_blocks = {
+        LIGHT_BLUE: light_blue_blocks,
+        LIGHT_RED: light_red_blocks,
+        ORANGE: AdjacentBlocks
+        # Add more color options and corresponding block lists if needed
+    }
+
+    blocks = color_blocks.get(color, [])
+    
     for i in range(range1):
-        light_blue_blocks.append((cursor_row - i - 1, cursor_col))
-        light_blue_blocks.append((cursor_row, cursor_col - i - 1))
-        light_blue_blocks.append((cursor_row, cursor_col + i + 1))
-        light_blue_blocks.append((cursor_row + i + 1, cursor_col))
+        blocks.append((cursor_row - i - 1, cursor_col))
+        blocks.append((cursor_row, cursor_col - i - 1))
+        blocks.append((cursor_row, cursor_col + i + 1))
+        blocks.append((cursor_row + i + 1, cursor_col))
 
         # Add elements to create the diamond shape
         for j in range(i):
-            light_blue_blocks.append((cursor_row - i + j, cursor_col - j - 1))
-            light_blue_blocks.append((cursor_row - i + j, cursor_col + j + 1))
-            light_blue_blocks.append((cursor_row + j + 1, cursor_col - i + j))
-            light_blue_blocks.append((cursor_row + j + 1, cursor_col + i - j))
+            blocks.append((cursor_row - i + j, cursor_col - j - 1))
+            blocks.append((cursor_row - i + j, cursor_col + j + 1))
+            blocks.append((cursor_row + j + 1, cursor_col - i + j))
+            blocks.append((cursor_row + j + 1, cursor_col + i - j))
 
-    
+    for i in range(len(blocks)):
+        if (cursor_row, cursor_col) == (blocks[i][0], blocks[i][1]):
+            blocks.pop(i)
 
-    for i in range (len(light_blue_blocks)):
-        if (cursor_row, cursor_col) == (light_blue_blocks[i][0], light_blue_blocks[i][1]):
-            light_blue_blocks.pop(i)
+
 def attackrange(UnitClass):
     if UnitClass == "Rank1Swords":
-        print("Lyndis, Class One")
+        #print("Lyndis, Class One")
         for i in range( len(ClassOneRange)):
             light_red_blocks.append((cursor_row + ClassOneRange[i][0], cursor_col + ClassOneRange[i][1]))
-        print(light_red_blocks)
+        #print(light_red_blocks)
         draw_blocks()
 
 def show_small_menu(options):
@@ -267,9 +288,10 @@ def draw_rectangle(screen, width, height, color, JustGetDim=False):
 #    screen.blit(text_surface, position)  # Blit the text surface onto the screen
 
 
-def DisplayText(screen, text, font_name, font_size, color, position, align="left"):
+def DisplayText(screen, text, font_name, font_size, color, position, align="left", rotation=0):
     font = pygame.font.SysFont(font_name, font_size)
     text_surface = font.render(text, True, color)
+    text_surface = pygame.transform.rotate(text_surface, rotation)
 
     if align == "center":
         text_rect = text_surface.get_rect(center=position)
@@ -283,10 +305,11 @@ def DisplayText(screen, text, font_name, font_size, color, position, align="left
 def FriendlyAttackLogic(min=0, max=0, Class=""):
     if Class == "Rank1Swords":
         pass
+
     return ["Hit", 10]
     #For now, just a placeholder
     
-def FightScene():
+def FightScene(EnemyPos):
     #menu.disable()
     RectDim = (200,100)
     ImgSize = (60, 40)
@@ -302,7 +325,7 @@ def FightScene():
     #a = 0
     i = 0
     for i in range (pngs):
-        #print(i)
+        #(i)
         screen.fill((0, 0, 0, 0))
         csleep(70)
         pygame.time.delay(0)  # Delay in milliseconds (0.07 seconds)
@@ -311,51 +334,24 @@ def FightScene():
         gif1 = pygame.image.load("assests/units/friendly/swordmaster-sword-a/slash-"+str(i)+".png")  # Replace "gif1.gif" with the actual file path of your first GIF
         gif1 = pygame.transform.scale(gif1, (ImgSize[0]*scale*5, ImgSize[1]*scale*5))
         gif1_rect = gif1.get_rect()
-        #print(gif1_rect)
+        #(gif1_rect)
         gif1_rect = ((RectDim[0]-175)*scale, (RectDim[1]-105)*scale)  # Adjusting the position of the GIF may cause some issues with scaling and positioning
         screen.blit(gif1, gif1_rect)
         pygame.display.flip()
         i+=1
         if i > pngs-2:
-            break        
-    '''
-    while i < pngs - 2:
-        #print("A")
-        for event in pygame.event.get():
-            if event.type == wait:
-                print(i)
+            break
 
-        #for i in range (pngs):
-        #    if(i==pngs-1):
-        #        break
-                screen.fill((0, 0, 0, 0))
-                pygame.time.delay(70)  # Delay in milliseconds (0.07 seconds)
-                #draw_rectangle(screen, ImgSize[0]*scale*2, ImgSize[1]*scale*2, (220,220,220))
-                gif1 = pygame.image.load("assests/units/friendly/swordmaster-sword-a/slash-"+str(i)+".png")  # Replace "gif1.gif" with the actual file path of your first GIF
-                gif1 = pygame.transform.scale(gif1, (ImgSize[0]*scale*5, ImgSize[1]*scale*5))
-                gif1_rect = gif1.get_rect()
-                #print(gif1_rect)
-                gif1_rect = ((RectDim[0]-175)*scale, (RectDim[1]-105)*scale)  # Adjusting the position of the GIF may cause some issues with scaling and positioning
-                screen.blit(gif1, gif1_rect)
-                pygame.display.flip()
-                i+=1
-                if i < pngs-2:
-                    break
-    '''
-    
-    #time.sleep(1)
-
-    # Load and display the second GIF
     # Load and display the second GIF
     screen.fill((0, 0, 0, 0))
     draw_rectangle(screen, RectDim[0]*scale, RectDim[1]*scale, (0, 98, 255))
     RectanglePos = draw_rectangle(screen, RectDim[0]*scale, RectDim[1]*scale, (0, 98, 255), JustGetDim=True)
-    #print(RectanglePos)
-    #print(scale, "scale")
+    #(RectanglePos)
+    #(scale, "scale")
     #exit()
-    #print(scale, WIDTH, HEIGHT)
+    #(scale, WIDTH, HEIGHT)
     #exit()
-    gif1 = pygame.image.load("assests/units/friendly/swordmaster-sword-a/slash-0.png")
+    gif1 = pygame.image.load("assests/units/friendly/swordmaster-sword-a/slash-5.png")
     gif1 = pygame.transform.scale(gif1, (ImgSize[0]*scale*2, ImgSize[1]*scale*2))
     #ImgOne is on the right
     Nscale = 4.090909090909091
@@ -364,7 +360,7 @@ def FightScene():
     ImgTwoXOffset = -30/Nscale
     ImgTwoYOffset = 50/Nscale
     #center1=(screen.get_width() // 2, screen.get_height()-1 //2)
-    #print(center1)
+    #(center1)
     scale_offset = scale * 2
     #mouse_pos = pygame.mouse.get_pos()
     #png dimensions are 240x160 pixels 
@@ -376,14 +372,13 @@ def FightScene():
         int(ImgSize[0] * scale_offset),  # Scale the width
         int(ImgSize[1] * scale_offset)   # Scale the height
     )
-   
     screen.blit(gif1, gif1_rect)
     
-    #print(RectDim,"RECTDIM")
-    #print(scale,"SCALE")
+    #(RectDim,"RECTDIM")
+    #(scale,"SCALE")
     #gif1_rect = ((0-x_offset), (0-y_offset))  # Adjusting the position of the GIF may cause some issues with scaling and positioning
     #gif1 = pygame.transform.scale(gif1, gif1_rect.size)
-    gif2 = pygame.image.load("assests/units/friendly/swordmaster-sword-a/slash-5.png")
+    gif2 = pygame.image.load("assests/units/friendly/swordmaster-sword-a/slash-0.png")
     gif2 = pygame.transform.scale(gif2, (ImgSize[0]*scale*2, ImgSize[1]*scale*2))
     gif2 = pygame.transform.flip(gif2, True, False)
     gif2_rect = gif2.get_rect()
@@ -398,14 +393,24 @@ def FightScene():
     screen.blit(gif2, gif2_rect)
     FriendlyAttackData = FriendlyAttackLogic()
     if FriendlyAttackData[0] == "Hit":
-        for i in range(5):
-            print(i)
-            DisplayText(screen, "Hit for "+str(FriendlyAttackData[1])+"!", "Arial", round(36.0//Nscale*scale)+1, (255, 255, 255), ((gif2_rect[0]//scale+20+i) * scale,gif2_rect[1]//scale*scale+i))
-        #DisplayText(screen, "Hello, World!", "Arial", 36, (255, 255, 255), (float(gif2_rect[0])//Nscale+20, float(gif2_rect[1])//Nscale)*scale)
-        #DisplayText("Hit", (gif2_rect[0], gif2_rect[1]))
+            DisplayText(screen, "Hit for "+str(FriendlyAttackData[1])+"!", "Arial", round(36.0//Nscale*scale)+1, (255, 255, 255), ((gif2_rect[0]//scale+20+5/5) * scale,gif2_rect[1]//scale*scale+3/3))
+
+        #for i in range(10):
+        #    DisplayText(screen, "Hit for "+str(FriendlyAttackData[1])+"!", "Arial", round(36.0//Nscale*scale)+1, (255, 255, 255), ((gif2_rect[0]//scale+20+i/5) * scale,gif2_rect[1]//scale*scale+i/3))
+        #    pygame.display.flip()
+        #    csleep(10)
+    #print(EnemyPos)
+    #print(EnemyPositions)
+    for i in range(len(EnemyPositions)):
+        if EnemyPos == EnemyPositions[i]:
+            #print(EnemyPositions[i])
+            #print(red_blocks[i][3])
+            red_blocks[i][3] = red_blocks[i][3] - FriendlyAttackData[1]
+    
+    #print(red_blocks[i][3])
 
     # Display text on the screen
-    text = font.render("aaa ", True, (255, 255, 255))
+    text = font.render(" ", True, (255, 255, 255))
     text_rect = text.get_rect(center=(screen.get_width() // 2, screen.get_height() - 50))
     screen.blit(text, text_rect)
     pygame.display.flip()
@@ -418,10 +423,10 @@ def FightScene():
     i = 0
     max = 50
     while i < max:
-        #print("A")
+        #("A")
         for event in pygame.event.get():
             if event.type == wait:
-                print(i)
+                #print(i)
 
         #for i in range (pngs):
         #    if(i==pngs-1):
@@ -430,21 +435,21 @@ def FightScene():
                 i+=1
                 if i < max:
                     break
-                #print(i)
+                #(i)
     '''
     #exit()
     #ctime = pygame.time.get_ticks()
     #while pygame.time.get_ticks() - ctime < 10000:
         #a += 1
     #    draw_rectangle(screen, 0, 0, (255,255,255))
-        #print(a)
+        #(a)
 
     #    clock.tick(60)  # Limits the frame rate to 60 FPS
     
-    #print(a)
+    #(a)
     #if pygame.time.get_ticks()- start_time >= 5000:
     #    # Execute the desired action after the delay
-    #    print("Delay finished")
+    #    #print("Delay finished")
         #running = False
     # Wait for a few seconds before ending the cutscene
     #a = 0
@@ -463,15 +468,18 @@ def FightScene():
 def print_cursor_position():
     pass
     #mouse_pos = pygame.mouse.get_pos()
-    #print(scale)
-    #print("Cursor position:", mouse_pos)
+    #(scale)
+    #("Cursor position:", mouse_pos)
 
 start_cursor_blink()
 stop_cursor_blink()
 global cursor_visible 
 cursor_visible = True
 global selecting
+global selectingEnemy
+selectingEnemy = False
 selecting = False
+CurrentEnemyIAmSelecting = []
 global id
 id = ""
 PlacedOnAnotherUnit = False
@@ -480,14 +488,18 @@ PlacedCorrectly = False
 OldWindowSize = [SCREENX, SCREENY] = screen.get_size()
 ReloadScale()
 while True:
+
+    EnemyPositions = []
+    for i in range(len(red_blocks)):
+        EnemyPositions.append((red_blocks[i][0],red_blocks[i][1]))
     SCREENX, SCREENY = screen.get_size()
-    #print(SCREENX//asp[0],"screenx divided by width")
-    #print(SCREENX,SCREENY)
+    #(SCREENX//asp[0],"screenx divided by width")
+    #(SCREENX,SCREENY)
     NewWindowSize = [SCREENX, SCREENY]
     if NewWindowSize != OldWindowSize:
         ReloadScale()
-        #print (scale)
-        #print("window resized")
+        # (scale)
+        #("window resized")
         #scree1n = pygame.display.set_mode((SCREENX, SCREENY), pygame.RESIZABLE)
         #scale = SCREENX//asp[0]
 
@@ -527,16 +539,43 @@ while True:
                 elif event.key == pygame.K_RIGHT and cursor_col < GRID_COLS - 1 and controlok:
                     cursor_col += 1
                 elif event.key == pygame.K_x:
+                    if selectingEnemy:
+                        #print("DD")
+                        #print(red_blocks, "red_blocks")
+                        #print(AdjacentBlocks[0], "AdjacentBlocks")
+                        selectingEnemy = False
+                        selecting = True
+                        print("selecting enemy end")
+                        if (cursor_row, cursor_col) in AdjacentBlocks and (cursor_row, cursor_col) in EnemyPositions:
+                            #print("MY COORDS ARE", cursor_row, cursor_col)
+                            CurrentEnemyIAmSelecting = (cursor_row, cursor_col)
+                            print("CurrentEnemyIAmSelecting", CurrentEnemyIAmSelecting)
+                        
+                        menu.add.button('Attack', lambda: FightScene(CurrentEnemyIAmSelecting))
+                        AdjacentBlocks=[]
+                        '''
+                        if (cursor_row, cursor_col) in AdjacentBlocks:
+                            for i in range (len(AdjacentBlocks)):
+                                i =-1
+                                #print(AdjacentBlocks, "AdjacentBlocks")
+                                if (cursor_row, cursor_col) == (AdjacentBlocks[i][0], AdjacentBlocks[i][1]):
+                                    print(cursor_col, cursor_row, "cursor_col, cursor_row")
+                                    AdjacentBlocks=[]
+                                    #AdjacentBlocks.pop(i)
+                                    clearrange()
+                                    stop_cursor_blink()'''
+
+                    
                     if selecting: 
-                        #print("selecting end")
+                        #("selecting end")
                         if (cursor_row, cursor_col) in light_blue_blocks: #if in range
-                            print("attempting to place")
+                            #print("attempting to place")
                             for i in range (len(blue_blocks)): #scan through blue blocks
                                 if (cursor_row, cursor_col) == (blue_blocks[i][0], blue_blocks[i][1]) or (cursor_row, cursor_col) == (red_blocks[i][0], red_blocks[i][1]): #if on another unit or enemy unit
-                                    print("cannot place on another unit")
+                                    #print("cannot place on another unit")
                                     PlacedOnAnotherUnit = True
                                     break
-                                #print(id)
+                                #(id)
                             for i in range (len(blue_blocks)): 
                                 if id == blue_blocks[i][2] and not PlacedOnAnotherUnit: #while going through blue blocks, if id matches the id of the unit selected pop it and place it on the new grid space
                                     blue_blocks.pop(i)
@@ -545,7 +584,7 @@ while True:
                                     selecting = False
                                     blue_blocks.append((cursor_row, cursor_col, id))
                                     alreadygone.append(id)
-                                    print("selecting ended after placing correctly")
+                                    ##print("selecting ended after placing correctly")
                                     PlacedCorrectly = True
                                     #attackrange(id)
 
@@ -563,9 +602,9 @@ while True:
                                 elif PlacedOnAnotherUnit:
                                     PlacedOnAnotherUnit = False
                                     break
-                            print(cursor_row, cursor_col)
-                            print(red_blocks)
-                            print(WIDTH, HEIGHT)
+                            ##print(cursor_row, cursor_col)
+                            ##print(red_blocks)
+                            ##print(WIDTH, HEIGHT)
                             menu = pygame_menu.Menu('Select', WIDTH//scale, HEIGHT//scale,theme=pygame_menu.themes.THEME_BLUE)
                             menu.add.button('Wait', menu.disable)
                             #start checking if enemy units are adjacent by looking through red blocks list
@@ -575,37 +614,44 @@ while True:
                                 [cursor_row, cursor_col - 1],
                                 [cursor_row, cursor_col + 1]
                             ]
-
+                            
                             for i in range(len(adjacent_positions)):
                                 for block in red_blocks:
                                     if adjacent_positions[i] == block[:2]:
-                                        menu.add.button('Attack', lambda: FightScene())
-                                        print("enemy unit adjacent")
-                        if PlacedCorrectly:
+                                        #print(i)
+                                        print(block[:2], "LINE 593")
+                                        AdjacentBlocks.append(block[:2])
+                                        #selecting = True
+                                        selectingEnemy = True
+                                        rangeout(1, ORANGE)
+                                        #print(i)
+                                        #print("enemy unit adjacent")
+                        if PlacedCorrectly and not selectingEnemy:
                             menu.mainloop(screen)
+                            selectingEnemy = False
                             PlacedCorrectly = False
                         
                     
-                        print("selecting ended")
+                        #print("selecting ended")
                         #return
                         stop_cursor_blink()
                         clearrange()
                         selecting = False
                     for i in range(len(blue_blocks)):
-                        #print(alreadygone)
+                        #(alreadygone)
                         if (cursor_row, cursor_col) == (blue_blocks[i][0], blue_blocks[i][1]):
                             if blue_blocks[i][2] in alreadygone:
-                                print("unit already moved")
+                                #print("unit already moved")
                                 break
                             clearrange()
                             
                             id = blue_blocks[i][2]
-                            print(id) #print id of unit selected
-                            print("blue")
-                            #print(event.key)
+                            ##print(id) # id of unit selected
+                            ##print("blue")
+                            #(event.key)
                             selecting = True
-                            #print(light_blue_blocks)
-                            rangeout(5)
+                            #(light_blue_blocks)
+                            rangeout(5, LIGHT_BLUE)
                             #rangeout(cursor_row + 1, cursor_col + 1, cursor_row + 1, cursor_col - 1, cursor_row - 1, cursor_col + 1, cursor_row - 1)
                             if blinkingc:
                                 stop_cursor_blink()
@@ -618,7 +664,7 @@ while True:
                     #    stop_cursor_blink()
                     #else:
                     #    start_cursor_blink()
-        #print(event.type)
+        #(event.type)
 
 
 
