@@ -507,35 +507,37 @@ selected_option = 0
 ActionMenu = False
 # Function to draw the menu
 def draw_menu():
+    #screen.fill(RED)
+    global controlok
     if ActionMenu:
-        controlok = False
+       # controlok = False
         #screen.fill(WHITE)
     
         # Calculate the position and size of the menu box
-        box_width = WIDTH // 2
+        box_width = WIDTH // 4
         box_height = HEIGHT // 2
         box_x = (WIDTH - box_width) // 2
         box_y = (HEIGHT - box_height) // 2
+        
+        # Fill the inside of the box
+        pygame.draw.rect(screen, WHITE, (box_x + 1, box_y + 1, box_width - 2, box_height - 2))
         
         # Draw the box
         pygame.draw.rect(screen, BLACK, (box_x, box_y, box_width, box_height), 3)
         
         # Draw the menu options
-        font = pygame.font.Font(None, 36)
+        font = pygame.font.Font(None,  12*int(scale))
         for i, option in enumerate(menu_options):
             text = font.render(option, True, BLACK)
             text_rect = text.get_rect()
-            text_rect.center = (WIDTH // 2, (HEIGHT // 2) + (i - 1) * 50)
+            text_rect.center = (WIDTH // 2, (HEIGHT // 2) + (i - 1) * scale *11)
             screen.blit(text, text_rect)
             
             # Highlight the selected option
             if i == selected_option:
-                pygame.draw.rect(screen, BLACK, (text_rect.left - 10, text_rect.top - 5, text_rect.width + 20, text_rect.height + 10), 3)
+                pygame.draw.rect(screen, BLACK, (text_rect.left - 10, text_rect.top - 5, text_rect.width + 20, text_rect.height + 10), int(scale)-1)
         
         pygame.display.update()
-
-
-
 
 
 
