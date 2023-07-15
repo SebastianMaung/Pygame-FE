@@ -1,4 +1,3 @@
-#test
 import random
 import pygame
 import pygame_menu
