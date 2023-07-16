@@ -1,19 +1,18 @@
 import random
 import pygame
-import pygame_menu
+#import pygame_menu 
 import time
 import os 
 main_game_running = True
 #pygame_menu controls
-os.chdir(str(os. getcwd()))
-custom_theme = pygame_menu.themes.Theme(background_color=(0, 0, 0, 0))
-import pygame_menu.controls as ctrl
-ctrl.KEY_APPLY = pygame.K_x
+#print(os.getcwd())
+#os.chdir("E:\WaterEmblem")
+#custom_theme = pygame_menu.themes.Theme(background_color=(0, 0, 0, 0))
 import sys #only used for sys.exit()
 def Constants():
     #scale = 2
     global InBattle, BLACK, WHITE, LIGHT_BLUE, LIGHT_RED, BLUE, RED, ORANGE, TRANSPARENT1,  FPS
-    #scale = 3
+    #scale = 3 
     InBattle = False
     #WIDTH = asp[0]*scale
     #HEIGHT = asp[1]*scale
@@ -456,7 +455,7 @@ def FightScene(EnemyPos):
     #for i in range(0, 1000):
     #    pygame.time.delay(10)
     #    a += 1
-    menu.disable()
+#    menu.disable()
 
 
     #draw_square((cursor_row, cursor_col), GRID_SIZE, RED)
@@ -612,11 +611,20 @@ def draw_menu():
 ActionMenu = False
 
 
-
 while True:
+    MyRoster = []
+    for i in range (len(blue_blocks)):
+        MyRoster.append(blue_blocks[i][2])
+    MyRoster.sort()
+    alreadygone.sort
+    #print(MyRoster, alreadygone)
+    if MyRoster == alreadygone:
+        alreadygone = []
+        exit()
     global LastSelectedUnit
     global menu_options
     menu_options = ["Wait"]
+    #print(alreadygone)
     if ActionMenu:
         pass
             #break
@@ -736,8 +744,8 @@ while True:
                                 ###print(cursor_row, cursor_col)
                                 ###print(red_blocks)
                                 ###print(WIDTH, HEIGHT)
-                                menu = pygame_menu.Menu('Select', WIDTH//scale, HEIGHT//scale,theme=pygame_menu.themes.THEME_BLUE)
-                                menu_options.append("Wait")
+                                #menu = pygame_menu.Menu('Select', WIDTH//scale, HEIGHT//scale,theme=pygame_menu.themes.THEME_BLUE)
+                                #menu_options.append("Wait")
                                 ##print(menu_options)
                                 #menu.add.button('Wait', menu.disable)
                                 
