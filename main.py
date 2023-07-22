@@ -175,19 +175,12 @@ def start_cursor_blink():
 def stop_cursor_blink():
     global blinkingc
     global cursor_visible 
-    #global
     blinkingc = False
     cursor_visible = True
 def clearrange():
     light_red_blocks.clear()
     light_blue_blocks.clear()
-def rangeout(range1, color=LIGHT_BLUE, x=None, y=None):
-    global AdjacentBlocks  # Declare it as global
-    if x is None:
-        x = cursor_row
-    if y is None:
-        y = cursor_col
-
+def rangeout(range1, color=LIGHT_BLUE):
     color_blocks = {
         LIGHT_BLUE: light_blue_blocks,
         LIGHT_RED: light_red_blocks,
@@ -198,23 +191,21 @@ def rangeout(range1, color=LIGHT_BLUE, x=None, y=None):
     blocks = color_blocks.get(color, [])
     
     for i in range(range1):
-        blocks.append((x - i - 1, y))
-        blocks.append((x, y - i - 1))
-        blocks.append((x, y + i + 1))
-        blocks.append((x + i + 1, y))
+        blocks.append((cursor_row - i - 1, cursor_col))
+        blocks.append((cursor_row, cursor_col - i - 1))
+        blocks.append((cursor_row, cursor_col + i + 1))
+        blocks.append((cursor_row + i + 1, cursor_col))
 
         # Add elements to create the diamond shape
         for j in range(i):
-            blocks.append((x - i + j, y - j - 1))
-            blocks.append((x - i + j, y + j + 1))
-            blocks.append((x + j + 1, y - i + j))
-            blocks.append((x + j + 1, y + i - j))
+            blocks.append((cursor_row - i + j, cursor_col - j - 1))
+            blocks.append((cursor_row - i + j, cursor_col + j + 1))
+            blocks.append((cursor_row + j + 1, cursor_col - i + j))
+            blocks.append((cursor_row + j + 1, cursor_col + i - j))
 
     for i in range(len(blocks)):
-        if (x, y) == (blocks[i][0], blocks[i][1]):
+        if (cursor_row, cursor_col) == (blocks[i][0], blocks[i][1]):
             blocks.pop(i)
-    pygame.display.flip()
-    
 
 
 def attackrange(UnitClass):
@@ -316,15 +307,14 @@ def FriendlyAttackLogic(min=0, max=0, Class=""):
 
     return ["Hit", 10]
     #For now, just a placeholder
-    
 def FightScene(EnemyPos):
     global EnemyPositions
     #print(EnemyPositions)
     #print(EnemyPos)
     #menu.disable()
     if not EnemyPos in EnemyPositions:
-        print("Error: Enemy not found")
-        exit()
+        raise Exception("EnemyPos not in EnemyPositions, must have attacked an empty space")
+        #exit()
     RectDim = (200,100)
     ImgSize = (60, 40)
     #time.sleep(1)
@@ -517,10 +507,7 @@ selected_option = 0
 ActionMenu = False
 PressedOption = ""
 # Function to draw the menu
-
-
 def draw_menu():
-    pygame.display.flip()
     global LastSelectedUnit
     global PressedOption
     global menu_options
@@ -537,7 +524,8 @@ def draw_menu():
 
 
 
-
+    #if ActionMenu == False:
+        #raise Exception("ActionMenu should be true")
     while ActionMenu:
         adjacent_positions = [
             [cursor_row - 1, cursor_col],
@@ -555,7 +543,7 @@ def draw_menu():
                     AdjacentBlocks.append(block[:2])
                     #selecting = True
                     selectingEnemy = True
-                    rangeout(1, color=ORANGE)
+                    rangeout(1, ORANGE)
                     ##print(i)
                     ##print("enemy unit adjacent")
         ##print(AdjacentBlocks)
@@ -569,23 +557,27 @@ def draw_menu():
                 elif event.key == pygame.K_DOWN:
                     selected_option = (selected_option + 1) % len(menu_options)
                 elif event.key == pygame.K_x:
+                    
                     if ActionMenu:
                         ##print("You selected", menu_options[selected_option])
                         PressedOption = menu_options[selected_option]
                         if PressedOption== "Wait":
+                            #DrawEverything()
                             ActionMenu = False
                             pass
                         if PressedOption== "Attack":
+                            #DrawEverything()
                             ActionMenu = False
                             CurrentEnemyIAmSelecting = (cursor_row, cursor_col)
                             FightScene(CurrentEnemyIAmSelecting)
 
                         ##print(selected_option)
                         ActionMenu = False
+                        DrawEverything()
+                      #  raise Exception("ActionMenu should be false")
                         controlok = True
-                    #else:
-                    #    ActionMenu = True
-                    ActionMenu = False
+                    else:
+                        ActionMenu = True
 
         if ActionMenu:
             controlok = False
@@ -613,11 +605,17 @@ def draw_menu():
                 # Highlight the selected option
                 if i == selected_option:
                     pygame.draw.rect(screen, BLACK, (text_rect.left - 10, text_rect.top - 5, text_rect.width + 20, text_rect.height + 10), int(scale) - 1)
+            
         pygame.display.update()
 
 
 
 
+
+
+
+
+ActionMenu = False
 
 def switch_turn():
     pygame.display.flip()
@@ -625,7 +623,8 @@ def switch_turn():
     global Turn 
     global TurnCount
     global ActionMenu
-
+    ActionMenu = False
+    DrawEverything()
     RectDim = (200, 50)
     if Turn == "Friendly":
         Turn = "Enemy"
@@ -637,28 +636,22 @@ def switch_turn():
     banner_color = (255, 255, 255)  # White color for the banner background
     banner_pos = (screen.get_width() // 2, screen.get_height() // 2)  # Center of the screen
     banner_rotation = 0  # No rotation
-    ActionMenu = False
     pygame.display.flip()
     pygame.display.update()
     # Create and display the banner
     #draw_rectangle(screen, RectDim[0]*scale, RectDim[1]*scale, (0, 98, 255))
     draw_rectangle(screen, RectDim[0]*scale, RectDim[1] * scale, banner_color, JustGetDim=True)
-    DisplayText(screen, f"Turn {TurnCount} , {Turn}", "Arial", 30, (0, 0, 0), banner_pos, align="center", rotation=banner_rotation)
+    DisplayText(screen, f"Turn {TurnCount}, {Turn}", "Arial", 30, (0, 0, 0), banner_pos, align="center", rotation=banner_rotation)
 
     # Update the screen
     pygame.display.flip()
+    DrawEverything()
 
     # Pause for a second before continuing the game
     csleep(1000)
     pygame.display.flip()
 
 
-
-ActionMenu = False
-
-Turn = "Friendly"
-TurnCount = 0
-print(main_game_running)
 def sortRoster():
     MyRoster = []
     for i in range (len(blue_blocks)):
@@ -669,38 +662,10 @@ def sortRoster():
     if MyRoster == alreadygone:
         print("All units have moved")
         switch_turn()
-def checkTurns():
-    global ActionMenu
-    global AdjacentBlocks  # Declare it as global
-    if Turn == "Friendly":
-        pass
-    elif Turn == "Enemy":
-        alreadygone = []
-        controlok = False
-        rangeout(1, color=ORANGE)
-        pygame.display.flip()
-        pygame.display.update()
-        draw_blocks() 
-        DrawEverything()
-        print(ActionMenu)
-        pygame.display.flip()
-        pygame.display.update()      
         csleep(1000)
-        '''
-            for i in range(len(red_blocks)):
-                for i in range(2):
-                    print(i)
-                    rangeout(1, color=ORANGE, x=red_blocks[i][0], y=red_blocks[i][1])
-                    pygame.display.flip()
-                    pygame.display.update()
-                    csleep(1000)
-                    print("thinking")
-                    #csleep(99999)
-                #red_blocks[i][0], red_blocks[i][1]'''
-        
-
 
 def DrawEverything():
+    #pygame.display.flip()
     if is_in_menu:
         show_menu()
     elif is_running:
@@ -709,120 +674,222 @@ def DrawEverything():
         draw_cursor()
         if ActionMenu:
             draw_menu()
-while True:
     pygame.display.flip()
+    screen.fill(TRANSPARENT1)
+    #pygame.display.update()
 
+TurnCount = 0
+Turn = "Friendly"
+while True:
+    #global Turn
+    sortRoster()
+    MyRoster = []
+    for i in range (len(blue_blocks)):
+        MyRoster.append(blue_blocks[i][2])
+    MyRoster.sort()
+    alreadygone.sort
+    #print(MyRoster, alreadygone)
+    global LastSelectedUnit
+    global menu_options
+    menu_options = ["Wait"]
+    #print(alreadygone)
+    if ActionMenu:
+        pass
+            #break
     if main_game_running:
-        sortRoster()
-        checkTurns()
-        # sort the list of units and check if all units have moved
+        EnemyPositions = []
+        for i in range(len(red_blocks)):
+            EnemyPositions.append((red_blocks[i][0],red_blocks[i][1]))
+        SCREENX, SCREENY = screen.get_size()
+        #(SCREENX//asp[0],"screenx divided by width")
+        #(SCREENX,SCREENY)
+        NewWindowSize = [SCREENX, SCREENY]
+        if NewWindowSize != OldWindowSize:
+            ReloadScale()
+            # (scale)
+            #("window resized")
+            #scree1n = pygame.display.set_mode((SCREENX, SCREENY), pygame.RESIZABLE)
+            #scale = SCREENX//asp[0]
 
-        global LastSelectedUnit
-        global menu_options
-        menu_options = ["Wait"]
-
-        if main_game_running:
-            EnemyPositions = []
-            for i in range(len(red_blocks)):
-                EnemyPositions.append((red_blocks[i][0], red_blocks[i][1]))
-
-            SCREENX, SCREENY = screen.get_size()
-            NewWindowSize = [SCREENX, SCREENY]
-            if NewWindowSize != OldWindowSize:
-                ReloadScale()
-                OldWindowSize = NewWindowSize
-
-            InBattle = False
-            WIDTH = asp[0] * scale
-            HEIGHT = asp[1] * scale
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                if event.type == event_5000ms:
-                    pass
-
-                if event.type == event_500ms and blinkingc:
-                    cursor_visible = not cursor_visible
-
-                if event.type == pygame.KEYDOWN:
-                    if is_in_menu and event.key == pygame.K_RETURN:
-                        start_game()
-                    elif is_running:
-                        if event.key == pygame.K_UP and cursor_row > 0 and controlok:
+            OldWindowSize = NewWindowSize
+        #scale = 3
+        InBattle = False
+        WIDTH = asp[0]*scale
+        HEIGHT = asp[1]*scale
+        #id = ""
+        #scree1n = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
+        global blinkingc
+        #blinkingc = True
+        #start_cursor_blink()
+        #stop_cursor_blink()
+        #global cursor_visible
+        #cursor_visible = cursor_visible
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == event_5000ms:
+                pass
+                #scree1n = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
+            if event.type == event_500ms and blinkingc:
+                cursor_visible = not cursor_visible
+            #print_cursor_position()
+            if event.type == pygame.KEYDOWN:
+                if is_in_menu and event.key == pygame.K_RETURN:
+                    start_game()
+                elif is_running:
+                    if event.key == pygame.K_UP and cursor_row > 0 and controlok:
+                        if cursor_row > 0 and controlok:
                             cursor_row -= 1
-                        elif event.key == pygame.K_DOWN and cursor_row < GRID_ROWS - 1 and controlok:
+                        #selected_option = (selected_option - 1) % len(menu_options)
+                        #cursor_row -= 1
+                        #selected_option = (selected_option - 1) % len(menu_options)
+                    elif event.key == pygame.K_DOWN:
+                        if cursor_row < GRID_ROWS - 1 and controlok:
                             cursor_row += 1
-                        elif event.key == pygame.K_LEFT and cursor_col > 0 and controlok:
-                            cursor_col -= 1
-                        elif event.key == pygame.K_RIGHT and cursor_col < GRID_COLS - 1 and controlok:
-                            cursor_col += 1
-                        elif event.key == pygame.K_x:
-                            #if ActionMenu:
-                            #    ActionMenu = False
-                            #    controlok = True
-                            if selectingEnemy:
-                                selectingEnemy = False
-                                selecting = True
-                                if (cursor_row, cursor_col) in AdjacentBlocks and (cursor_row, cursor_col) in EnemyPositions:
-                                    CurrentEnemyIAmSelecting = (cursor_row, cursor_col)
-                                    menu_options.append("Attack")
-                                    AdjacentBlocks = []
+                       # selected_option = (selected_option + 1) % len(menu_options)
+                    elif event.key == pygame.K_LEFT and cursor_col > 0 and controlok:
+                        cursor_col -= 1
+                    elif event.key == pygame.K_RIGHT and cursor_col < GRID_COLS - 1 and controlok:
+                        cursor_col += 1
+                    elif event.key == pygame.K_x:
+                        if ActionMenu:
+                            #    #print("You selected", menu_options[selected_option])
+                                ActionMenu = False
+                                controlok = True
+                        if selectingEnemy:
+                            ##print("DD")
+                            ##print(red_blocks, "red_blocks")
+                            ##print(AdjacentBlocks[0], "AdjacentBlocks")
+                            selectingEnemy = False
+                            selecting = True
+                           # #print("selecting enemy end")
+                            if (cursor_row, cursor_col) in AdjacentBlocks and (cursor_row, cursor_col) in EnemyPositions:
+                                ##print("MY COORDS ARE", cursor_row, cursor_col)
+                                CurrentEnemyIAmSelecting = (cursor_row, cursor_col)
+                                #print("CurrentEnemyIAmSelecting", CurrentEnemyIAmSelecting)
+                                menu_options.append("Attack")
+                                #menu.add.button('Attack', lambda: FightScene(CurrentEnemyIAmSelecting))
 
-                            if selecting:
-                                if (cursor_row, cursor_col) in light_blue_blocks:  # if in range
-                                    for i in range(len(blue_blocks)):
-                                        if (cursor_row, cursor_col) == (blue_blocks[i][0], blue_blocks[i][1]) or \
-                                                (cursor_row, cursor_col) == (red_blocks[i][0], red_blocks[i][1]):
-                                            PlacedOnAnotherUnit = True
-                                            break
+                            AdjacentBlocks=[]
 
-                                    for i in range(len(blue_blocks)):
-                                        if id == blue_blocks[i][2] and not PlacedOnAnotherUnit:
-                                            blue_blocks.pop(i)
-                                            clearrange()
-                                            stop_cursor_blink()
-                                            selecting = False
-                                            blue_blocks.append((cursor_row, cursor_col, id))
-                                            alreadygone.append(id)
-                                            PlacedCorrectly = True
-                                            break
-
-                                        elif PlacedOnAnotherUnit:
-                                            PlacedOnAnotherUnit = False
-                                            break
-
-                                    if PlacedCorrectly and not selectingEnemy:
-                                        ActionMenu = True
-                                        selectingEnemy = False
-                                        PlacedCorrectly = False
-
-                                stop_cursor_blink()
-                                clearrange()
-                                selecting = False
-
-                            for i in range(len(blue_blocks)):
-                                if (cursor_row, cursor_col) == (blue_blocks[i][0], blue_blocks[i][1]):
-                                    LastSelectedUnit = blue_blocks[i]
-                                    if blue_blocks[i][2] in alreadygone:
+                        if selecting: 
+                            #("selecting end")
+                            if (cursor_row, cursor_col) in light_blue_blocks: #if in range
+                                ##print("attempting to place")
+                                for i in range (len(blue_blocks)): #scan through blue blocks
+                                    if (cursor_row, cursor_col) == (blue_blocks[i][0], blue_blocks[i][1]) or (cursor_row, cursor_col) == (red_blocks[i][0], red_blocks[i][1]): #if on another unit or enemy unit
+                                        ##print("cannot place on another unit")
+                                        PlacedOnAnotherUnit = True
                                         break
-                                    clearrange()
-                                    id = blue_blocks[i][2]
-                                    selecting = True
-                                    rangeout(5, color=LIGHT_BLUE)
-
-                                    if blinkingc:
+                                    #(id)
+                                for i in range (len(blue_blocks)): 
+                                    if id == blue_blocks[i][2] and not PlacedOnAnotherUnit: #while going through blue blocks, if id matches the id of the unit selected pop it and place it on the new grid space
+                                        blue_blocks.pop(i)
+                                        clearrange()
                                         stop_cursor_blink()
                                         selecting = False
-                                    else:
-                                        start_cursor_blink()
-
-            screen.fill(TRANSPARENT1)
-            scaled_screen = pygame.transform.scale(screen, (WIDTH, HEIGHT))
-            screen.blit(scaled_screen, (0, 0))
-            DrawEverything()
+                                        blue_blocks.append((cursor_row, cursor_col, id))
+                                        alreadygone.append(id)
+                                        ###print("selecting ended after placing correctly")
+                                        PlacedCorrectly = True
+                                        #attackrange(id)
 
 
-    pygame.display.flip()
+
+                                        #menu.add.text_input('Name :', default='John Doe')
+                                        #menu.add.selector('Difficulty :', [('Hard', 1), ('Easy', 2)], onchange=DoNothing())
+                                        #check if enemy units adjacent
+                                        #menu = pygame_menu.Menu('Select', 400, 300,theme=pygame_menu.themes.THEME_BLUE)
+                                        ##menu.add.button('Wait', menu.disable)
+                                        #menu.add.button('Attack', menu.disable)
+                                        #menu.mainloop(screen)
+                                        break
+
+                                    elif PlacedOnAnotherUnit:
+                                        PlacedOnAnotherUnit = False
+                                        break
+                                ###print(cursor_row, cursor_col)
+                                ###print(red_blocks)
+                                ###print(WIDTH, HEIGHT)
+                                #menu = pygame_menu.Menu('Select', WIDTH//scale, HEIGHT//scale,theme=pygame_menu.themes.THEME_BLUE)
+                                #menu_options.append("Wait")
+                                ##print(menu_options)
+                                #menu.add.button('Wait', menu.disable)
+                                
+                                #start checking if enemy units are adjacent by looking through red blocks list
+                                adjacent_positions = [
+                                    [cursor_row - 1, cursor_col],
+                                    [cursor_row + 1, cursor_col],
+                                    [cursor_row, cursor_col - 1],
+                                    [cursor_row, cursor_col + 1]
+                                ]
+                                
+                                for i in range(len(adjacent_positions)):
+                                    for block in red_blocks:
+                                        if adjacent_positions[i] == block[:2]:
+                                            ##print(i)
+                                            ###print(block[:2], "LINE 593")
+                                            AdjacentBlocks.append(block[:2])
+                                            #selecting = True
+                                            selectingEnemy = True
+                                            rangeout(1, ORANGE)
+                                            ###print(i)
+                                            ###print("enemy unit adjacent")
+                            if PlacedCorrectly and not selectingEnemy:
+                                ActionMenu = True
+                                #draw_menu()
+
+                               # menu.mainloop(screen)
+                                selectingEnemy = False
+                                PlacedCorrectly = False
+                            
+                        
+                            ###print("selecting ended")
+                            #return
+                            stop_cursor_blink()
+                            clearrange()
+                            selecting = False
+                        for i in range(len(blue_blocks)):
+                            #(alreadygone)
+                            if (cursor_row, cursor_col) == (blue_blocks[i][0], blue_blocks[i][1]):
+                                LastSelectedUnit = blue_blocks[i]
+                                ##print(LastSelectedUnit)
+                                if blue_blocks[i][2] in alreadygone:
+                                    ###print("unit already moved")
+                                    break
+                                clearrange()
+                                
+                                id = blue_blocks[i][2]
+                                ####print(id) # id of unit selected
+                                ####print("blue")
+                                #(event.key)
+                                selecting = True
+                                #(light_blue_blocks)
+                                rangeout(5, LIGHT_BLUE)
+                                #rangeout(cursor_row + 1, cursor_col + 1, cursor_row + 1, cursor_col - 1, cursor_row - 1, cursor_col + 1, cursor_row - 1)
+                                if blinkingc:
+                                    stop_cursor_blink()
+                                    selecting = False
+                                else:
+                                    start_cursor_blink()
+
+                                    
+                        #if is_cursor_blinking:
+                        #    stop_cursor_blink()
+                        #else:
+                        #    start_cursor_blink()
+            #(event.type)
+
+
+
+            #if event.type == pygame.MOUSEMOTION and is_running:
+            #    mouse_pos = pygame.mouse.get_pos()
+            #    cursor_col = mouse_pos[0] // GRID_SIZE
+            #    cursor_row = mouse_pos[1] // GRID_SIZE
+
+    scaled_screen = pygame.transform.scale(screen, (WIDTH, HEIGHT))
+    screen.blit(scaled_screen, (0, 0))
+    DrawEverything()    
+        #draw_square((cursor_row, cursor_col), GRID_SIZE, RED)
     clock.tick(FPS)
