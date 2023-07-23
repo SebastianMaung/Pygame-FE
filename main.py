@@ -137,12 +137,13 @@ def draw_blocks():
     for block in light_red_blocks:
         rect = pygame.Rect(block[1] * GRID_SIZE, block[0] * GRID_SIZE, GRID_SIZE, GRID_SIZE)
         pygame.draw.rect(screen, LIGHT_RED, rect)
-    for block in blue_blocks:
-        rect = pygame.Rect(block[1] * GRID_SIZE, block[0] * GRID_SIZE, GRID_SIZE, GRID_SIZE)
-        pygame.draw.rect(screen, BLUE, rect)
     for block in AdjacentBlocks:
         rect = pygame.Rect(block[1] * GRID_SIZE, block[0] * GRID_SIZE, GRID_SIZE, GRID_SIZE)
         pygame.draw.rect(screen, ORANGE, rect)
+    for block in blue_blocks:
+        rect = pygame.Rect(block[1] * GRID_SIZE, block[0] * GRID_SIZE, GRID_SIZE, GRID_SIZE)
+        pygame.draw.rect(screen, BLUE, rect)
+
     for block in red_blocks:
         rect = pygame.Rect(block[1] * GRID_SIZE, block[0] * GRID_SIZE, GRID_SIZE, GRID_SIZE)
         pygame.draw.rect(screen, RED, rect)
@@ -180,7 +181,15 @@ def stop_cursor_blink():
 def clearrange():
     light_red_blocks.clear()
     light_blue_blocks.clear()
-def rangeout(range1, color=LIGHT_BLUE):
+    #DrawEverything()
+
+def rangeout(range1, color=LIGHT_BLUE, x=None, y=None):
+    global AdjacentBlocks  # Declare it as global
+    if x is None:
+        x = cursor_row
+    if y is None:
+        y = cursor_col
+
     color_blocks = {
         LIGHT_BLUE: light_blue_blocks,
         LIGHT_RED: light_red_blocks,
@@ -191,21 +200,34 @@ def rangeout(range1, color=LIGHT_BLUE):
     blocks = color_blocks.get(color, [])
     
     for i in range(range1):
-        blocks.append((cursor_row - i - 1, cursor_col))
-        blocks.append((cursor_row, cursor_col - i - 1))
-        blocks.append((cursor_row, cursor_col + i + 1))
-        blocks.append((cursor_row + i + 1, cursor_col))
+        blocks.append((x - i - 1, y))
+        blocks.append((x, y - i - 1))
+        blocks.append((x, y + i + 1))
+        blocks.append((x + i + 1, y))
 
         # Add elements to create the diamond shape
         for j in range(i):
-            blocks.append((cursor_row - i + j, cursor_col - j - 1))
-            blocks.append((cursor_row - i + j, cursor_col + j + 1))
-            blocks.append((cursor_row + j + 1, cursor_col - i + j))
-            blocks.append((cursor_row + j + 1, cursor_col + i - j))
+            blocks.append((x - i + j, y - j - 1))
+            blocks.append((x - i + j, y + j + 1))
+            blocks.append((x + j + 1, y - i + j))
+            blocks.append((x + j + 1, y + i - j))
+
+    # Use a list to store the indices of blocks to remove
+    indices_to_remove = []
 
     for i in range(len(blocks)):
-        if (cursor_row, cursor_col) == (blocks[i][0], blocks[i][1]):
-            blocks.pop(i)
+        try:
+            if (x, y) == (blocks[i][0], blocks[i][1]):
+                indices_to_remove.append(i)
+        except IndexError:
+            pass
+
+    # Remove the blocks with the stored indices in reverse order
+    for idx in reversed(indices_to_remove):
+        blocks.pop(idx)
+    DrawEverything()
+    #pygame.display.flip()
+
 
 
 def attackrange(UnitClass):
@@ -613,7 +635,15 @@ def draw_menu():
 
 
 
-
+def EnemyTurn():
+    AdjacentBlocks.clear()
+    for i in range(len(red_blocks)):
+        #[[0, 0, 'Footsoldier', 100, 'Rank1Swords'], [1, 1, 'Footsoldier', 100, 'Rank1Swords']]
+        #print(red_blocks)
+        rangeout(5, color=ORANGE, x=red_blocks[i][0], y=red_blocks[i][1])
+        csleep(5000)
+        AdjacentBlocks.clear()
+        #print(i)
 
 ActionMenu = False
 
@@ -630,6 +660,9 @@ def switch_turn():
     if Turn == "Friendly":
         Turn = "Enemy"
     elif Turn == "Enemy":
+        EnemyTurn()
+        alreadygone.clear()
+        #raise Exception("Turn works")
         Turn = "Friendly"
     TurnCount += 1
 
@@ -651,7 +684,7 @@ def switch_turn():
     # Pause for a second before continuing the game
     csleep(1000)
 
-
+ 
 def sortRoster():
     MyRoster = []
     for i in range (len(blue_blocks)):
