@@ -625,6 +625,7 @@ def switch_turn():
     global ActionMenu
     ActionMenu = False
     DrawEverything()
+
     RectDim = (200, 50)
     if Turn == "Friendly":
         Turn = "Enemy"
@@ -636,20 +637,19 @@ def switch_turn():
     banner_color = (255, 255, 255)  # White color for the banner background
     banner_pos = (screen.get_width() // 2, screen.get_height() // 2)  # Center of the screen
     banner_rotation = 0  # No rotation
-    pygame.display.flip()
-    pygame.display.update()
+
+    # Draw the grid (excluding menu, cursor, and menu draw)
+    DrawEverything(exclude_menu=True, exclude_cursor=True, exclude_menu_draw=True)
+
     # Create and display the banner
-    #draw_rectangle(screen, RectDim[0]*scale, RectDim[1]*scale, (0, 98, 255))
-    draw_rectangle(screen, RectDim[0]*scale, RectDim[1] * scale, banner_color, JustGetDim=True)
+    draw_rectangle(screen, RectDim[0]*scale, RectDim[1]*scale, banner_color, JustGetDim=True)
     DisplayText(screen, f"Turn {TurnCount}, {Turn}", "Arial", 30, (0, 0, 0), banner_pos, align="center", rotation=banner_rotation)
 
-    # Update the screen
-    pygame.display.flip()
-    DrawEverything()
+    # Update only the area where the banner will be drawn next
+    pygame.display.update(pygame.Rect(banner_pos[0] - RectDim[0]//2, banner_pos[1] - RectDim[1]//2, RectDim[0], RectDim[1]))
 
     # Pause for a second before continuing the game
     csleep(1000)
-    pygame.display.flip()
 
 
 def sortRoster():
@@ -664,19 +664,22 @@ def sortRoster():
         switch_turn()
         csleep(1000)
 
-def DrawEverything():
-    #pygame.display.flip()
-    if is_in_menu:
+def DrawEverything(exclude_menu=False, exclude_grid=False, exclude_blocks=False, exclude_cursor=False, exclude_menu_draw=False):
+    # pygame.display.flip()
+    if not exclude_menu and is_in_menu:
         show_menu()
-    elif is_running:
+    elif not exclude_grid and is_running:
         draw_grid()
+    if not exclude_blocks and is_running:
         draw_blocks()
+    if not exclude_cursor and is_running:
         draw_cursor()
-        if ActionMenu:
+        if not exclude_menu_draw and ActionMenu:
             draw_menu()
     pygame.display.flip()
+    #screen.fill(TRANSPARENT1)
     screen.fill(TRANSPARENT1)
-    #pygame.display.update()
+
 
 TurnCount = 0
 Turn = "Friendly"
