@@ -137,12 +137,13 @@ def draw_blocks():
     for block in light_red_blocks:
         rect = pygame.Rect(block[1] * GRID_SIZE, block[0] * GRID_SIZE, GRID_SIZE, GRID_SIZE)
         pygame.draw.rect(screen, LIGHT_RED, rect)
-    for block in blue_blocks:
-        rect = pygame.Rect(block[1] * GRID_SIZE, block[0] * GRID_SIZE, GRID_SIZE, GRID_SIZE)
-        pygame.draw.rect(screen, BLUE, rect)
     for block in AdjacentBlocks:
         rect = pygame.Rect(block[1] * GRID_SIZE, block[0] * GRID_SIZE, GRID_SIZE, GRID_SIZE)
         pygame.draw.rect(screen, ORANGE, rect)
+    for block in blue_blocks:
+        rect = pygame.Rect(block[1] * GRID_SIZE, block[0] * GRID_SIZE, GRID_SIZE, GRID_SIZE)
+        pygame.draw.rect(screen, BLUE, rect)
+
     for block in red_blocks:
         rect = pygame.Rect(block[1] * GRID_SIZE, block[0] * GRID_SIZE, GRID_SIZE, GRID_SIZE)
         pygame.draw.rect(screen, RED, rect)
@@ -180,7 +181,15 @@ def stop_cursor_blink():
 def clearrange():
     light_red_blocks.clear()
     light_blue_blocks.clear()
-def rangeout(range1, color=LIGHT_BLUE):
+    #DrawEverything()
+
+def rangeout(range1, color=LIGHT_BLUE, x=None, y=None):
+    global AdjacentBlocks  # Declare it as global
+    if x is None:
+        x = cursor_row
+    if y is None:
+        y = cursor_col
+
     color_blocks = {
         LIGHT_BLUE: light_blue_blocks,
         LIGHT_RED: light_red_blocks,
@@ -191,21 +200,34 @@ def rangeout(range1, color=LIGHT_BLUE):
     blocks = color_blocks.get(color, [])
     
     for i in range(range1):
-        blocks.append((cursor_row - i - 1, cursor_col))
-        blocks.append((cursor_row, cursor_col - i - 1))
-        blocks.append((cursor_row, cursor_col + i + 1))
-        blocks.append((cursor_row + i + 1, cursor_col))
+        blocks.append((x - i - 1, y))
+        blocks.append((x, y - i - 1))
+        blocks.append((x, y + i + 1))
+        blocks.append((x + i + 1, y))
 
         # Add elements to create the diamond shape
         for j in range(i):
-            blocks.append((cursor_row - i + j, cursor_col - j - 1))
-            blocks.append((cursor_row - i + j, cursor_col + j + 1))
-            blocks.append((cursor_row + j + 1, cursor_col - i + j))
-            blocks.append((cursor_row + j + 1, cursor_col + i - j))
+            blocks.append((x - i + j, y - j - 1))
+            blocks.append((x - i + j, y + j + 1))
+            blocks.append((x + j + 1, y - i + j))
+            blocks.append((x + j + 1, y + i - j))
+
+    # Use a list to store the indices of blocks to remove
+    indices_to_remove = []
 
     for i in range(len(blocks)):
-        if (cursor_row, cursor_col) == (blocks[i][0], blocks[i][1]):
-            blocks.pop(i)
+        try:
+            if (x, y) == (blocks[i][0], blocks[i][1]):
+                indices_to_remove.append(i)
+        except IndexError:
+            pass
+
+    # Remove the blocks with the stored indices in reverse order
+    for idx in reversed(indices_to_remove):
+        blocks.pop(idx)
+    DrawEverything()
+    #pygame.display.flip()
+
 
 
 def attackrange(UnitClass):
@@ -307,14 +329,14 @@ def FriendlyAttackLogic(min=0, max=0, Class=""):
 
     return ["Hit", 10]
     #For now, just a placeholder
-    
 def FightScene(EnemyPos):
     global EnemyPositions
     #print(EnemyPositions)
     #print(EnemyPos)
     #menu.disable()
     if not EnemyPos in EnemyPositions:
-        exit()
+        raise Exception("EnemyPos not in EnemyPositions, must have attacked an empty space")
+        #exit()
     RectDim = (200,100)
     ImgSize = (60, 40)
     #time.sleep(1)
@@ -524,7 +546,8 @@ def draw_menu():
 
 
 
-
+    #if ActionMenu == False:
+        #raise Exception("ActionMenu should be true")
     while ActionMenu:
         adjacent_positions = [
             [cursor_row - 1, cursor_col],
@@ -561,13 +584,19 @@ def draw_menu():
                         ##print("You selected", menu_options[selected_option])
                         PressedOption = menu_options[selected_option]
                         if PressedOption== "Wait":
+                            #DrawEverything()
+                            ActionMenu = False
                             pass
                         if PressedOption== "Attack":
+                            #DrawEverything()
+                            ActionMenu = False
                             CurrentEnemyIAmSelecting = (cursor_row, cursor_col)
                             FightScene(CurrentEnemyIAmSelecting)
 
                         ##print(selected_option)
                         ActionMenu = False
+                        DrawEverything()
+                      #  raise Exception("ActionMenu should be false")
                         controlok = True
                     else:
                         ActionMenu = True
@@ -606,12 +635,57 @@ def draw_menu():
 
 
 
-
+def EnemyTurn():
+    AdjacentBlocks.clear()
+    for i in range(len(red_blocks)):
+        #[[0, 0, 'Footsoldier', 100, 'Rank1Swords'], [1, 1, 'Footsoldier', 100, 'Rank1Swords']]
+        #print(red_blocks)
+        rangeout(5, color=ORANGE, x=red_blocks[i][0], y=red_blocks[i][1])
+        csleep(5000)
+        AdjacentBlocks.clear()
+        #print(i)
 
 ActionMenu = False
 
+def switch_turn():
+    pygame.display.flip()
+    global main_game_running
+    global Turn 
+    global TurnCount
+    global ActionMenu
+    ActionMenu = False
+    DrawEverything()
 
-while True:
+    RectDim = (200, 50)
+    if Turn == "Friendly":
+        Turn = "Enemy"
+    elif Turn == "Enemy":
+        EnemyTurn()
+        alreadygone.clear()
+        #raise Exception("Turn works")
+        Turn = "Friendly"
+    TurnCount += 1
+
+    # Display the turn banner
+    banner_color = (255, 255, 255)  # White color for the banner background
+    banner_pos = (screen.get_width() // 2, screen.get_height() // 2)  # Center of the screen
+    banner_rotation = 0  # No rotation
+
+    # Draw the grid (excluding menu, cursor, and menu draw)
+    DrawEverything(exclude_menu=True, exclude_cursor=True, exclude_menu_draw=True)
+
+    # Create and display the banner
+    draw_rectangle(screen, RectDim[0]*scale, RectDim[1]*scale, banner_color, JustGetDim=True)
+    DisplayText(screen, f"Turn {TurnCount}, {Turn}", "Arial", 30, (0, 0, 0), banner_pos, align="center", rotation=banner_rotation)
+
+    # Update only the area where the banner will be drawn next
+    pygame.display.update(pygame.Rect(banner_pos[0] - RectDim[0]//2, banner_pos[1] - RectDim[1]//2, RectDim[0], RectDim[1]))
+
+    # Pause for a second before continuing the game
+    csleep(1000)
+
+ 
+def sortRoster():
     MyRoster = []
     for i in range (len(blue_blocks)):
         MyRoster.append(blue_blocks[i][2])
@@ -619,8 +693,38 @@ while True:
     alreadygone.sort
     #print(MyRoster, alreadygone)
     if MyRoster == alreadygone:
-        alreadygone = []
-        exit()
+        print("All units have moved")
+        switch_turn()
+        csleep(1000)
+
+def DrawEverything(exclude_menu=False, exclude_grid=False, exclude_blocks=False, exclude_cursor=False, exclude_menu_draw=False):
+    # pygame.display.flip()
+    if not exclude_menu and is_in_menu:
+        show_menu()
+    elif not exclude_grid and is_running:
+        draw_grid()
+    if not exclude_blocks and is_running:
+        draw_blocks()
+    if not exclude_cursor and is_running:
+        draw_cursor()
+        if not exclude_menu_draw and ActionMenu:
+            draw_menu()
+    pygame.display.flip()
+    #screen.fill(TRANSPARENT1)
+    screen.fill(TRANSPARENT1)
+
+
+TurnCount = 0
+Turn = "Friendly"
+while True:
+    #global Turn
+    sortRoster()
+    MyRoster = []
+    for i in range (len(blue_blocks)):
+        MyRoster.append(blue_blocks[i][2])
+    MyRoster.sort()
+    alreadygone.sort
+    #print(MyRoster, alreadygone)
     global LastSelectedUnit
     global menu_options
     menu_options = ["Wait"]
@@ -820,18 +924,8 @@ while True:
             #    cursor_col = mouse_pos[0] // GRID_SIZE
             #    cursor_row = mouse_pos[1] // GRID_SIZE
 
-    screen.fill(TRANSPARENT1)
     scaled_screen = pygame.transform.scale(screen, (WIDTH, HEIGHT))
     screen.blit(scaled_screen, (0, 0))
-    if is_in_menu:
-        show_menu()
-    elif is_running:
-        draw_grid()
-        #if cursor_visible:
-        draw_blocks()
-        draw_cursor()
-        if ActionMenu:
-            draw_menu()
+    DrawEverything()    
         #draw_square((cursor_row, cursor_col), GRID_SIZE, RED)
-    pygame.display.flip()
     clock.tick(FPS)
