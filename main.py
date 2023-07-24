@@ -632,15 +632,44 @@ def draw_menu():
 
 
 
+def calculate_distance(x1, y1, x2, y2):
+    return ((x2 - x1)**2 + (y2 - y1)**2)**0.5
 
 
 
 def EnemyTurn():
+    AmountOfSteps = 4
     AdjacentBlocks.clear()
     for i in range(len(red_blocks)):
+        rangeout(AmountOfSteps+3, color=ORANGE, x=red_blocks[i][0], y=red_blocks[i][1])
+        csleep(3000)
+        nearest_blue_block = None
+        min_distance = None
+
+        for blue_block in blue_blocks:
+            distance = calculate_distance(red_blocks[i][0], red_blocks[i][1], blue_block[0], blue_block[1])
+            
+            if min_distance is None or distance < min_distance:
+                nearest_blue_block = blue_block
+                min_distance = distance
+
+        # Move towards the nearest blue block
+        for j in range(AmountOfSteps): #amount of times to move
+            csleep(1000)
+            if nearest_blue_block:
+                if red_blocks[i][0] < nearest_blue_block[0]:
+                    red_blocks[i][0] += 1
+                elif red_blocks[i][0] > nearest_blue_block[0]:
+                    red_blocks[i][0] -= 1
+                
+                if red_blocks[i][1] < nearest_blue_block[1]:
+                    red_blocks[i][1] += 1
+                elif red_blocks[i][1] > nearest_blue_block[1]:
+                    red_blocks[i][1] -= 1
+            DrawEverything()
+
         #[[0, 0, 'Footsoldier', 100, 'Rank1Swords'], [1, 1, 'Footsoldier', 100, 'Rank1Swords']]
         #print(red_blocks)
-        rangeout(5, color=ORANGE, x=red_blocks[i][0], y=red_blocks[i][1])
         csleep(5000)
         AdjacentBlocks.clear()
         #print(i)
