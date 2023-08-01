@@ -638,6 +638,7 @@ def calculate_distance(x1, y1, x2, y2):
 
 
 def EnemyTurn():
+    EnemyMovementPath = []
     AmountOfSteps = 4
     AdjacentBlocks.clear()
     for i in range(len(red_blocks)):
@@ -654,7 +655,13 @@ def EnemyTurn():
                 min_distance = distance
 
         # Move towards the nearest blue block
-        for j in range(AmountOfSteps): #amount of times to move
+        breakLoop = False
+        EnemyMovementPath.append((red_blocks[i][0], red_blocks[i][1]))  # Save starting position
+        while True:
+            if breakLoop:
+                print("broke out!")
+                break
+        #for j in range(AmountOfSteps): #amount of times to move
             csleep(1000)
             if nearest_blue_block:
                 if red_blocks[i][0] < nearest_blue_block[0]:
@@ -666,11 +673,50 @@ def EnemyTurn():
                     red_blocks[i][1] += 1
                 elif red_blocks[i][1] > nearest_blue_block[1]:
                     red_blocks[i][1] -= 1
+                EnemyMovementPath.append((red_blocks[i][0], red_blocks[i][1]))
+                #check if still inside adjacent blocks (range)
+                if (red_blocks[i][0], red_blocks[i][1]) not in AdjacentBlocks:
+                    break
+                for k in range (len(blue_blocks)):
+                    if (red_blocks[i][0], red_blocks[i][1]) == (blue_blocks[k][0], blue_blocks[k][1]):
+                        print("somethings wrong!")
+                        red_blocks[i][0] = EnemyMovementPath[-2][0]
+                        red_blocks[i][1] = EnemyMovementPath[-2][1]
+                        breakLoop = True
+                        break 
+
+                for l in range (len(red_blocks)):
+                    if i != l and (red_blocks[i][0], red_blocks[i][1]) == (red_blocks[l][0], red_blocks[l][1]):
+                        print("I've ended up on top of another enemy unit!")
+                        red_blocks[i][0] = EnemyMovementPath[-2][0]
+                        red_blocks[i][1] = EnemyMovementPath[-2][1]
+                        breakLoop = True
+                        #print(bloc)
+                        break 
+
             DrawEverything()
+
+            
 
         #[[0, 0, 'Footsoldier', 100, 'Rank1Swords'], [1, 1, 'Footsoldier', 100, 'Rank1Swords']]
         #print(red_blocks)
-        csleep(5000)
+        #check if enemy unit is on top of another friendly unit
+
+        #check if enemy unit is on top of another enemy unit
+
+
+        '''
+        print("Enemy unit "+str(i)+" moved")
+        if red_blocks[i][0] == nearest_blue_block[0] and red_blocks[i][1] == nearest_blue_block[1]:
+            print("Enemy unit "+str(i)+" is attacking")
+            FightScene((nearest_blue_block[0], nearest_blue_block[1]))
+            #print("Enemy unit "+str(i)+" attacked")
+            #print(red_blocks)
+        '''
+        #csleep(1000)
+        #red_blocks[i][0] = EnemyMovementPath[-2][0]
+        #red_blocks[i][1] = EnemyMovementPath[-2][1]
+        csleep(2000)
         AdjacentBlocks.clear()
         #print(i)
 
