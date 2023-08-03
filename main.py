@@ -643,7 +643,7 @@ def EnemyTurn():
     AdjacentBlocks.clear()
     for i in range(len(red_blocks)):
         rangeout(AmountOfSteps+3, color=ORANGE, x=red_blocks[i][0], y=red_blocks[i][1])
-        csleep(3000)
+        csleep(1000)
         nearest_blue_block = None
         min_distance = None
 
@@ -659,17 +659,34 @@ def EnemyTurn():
         EnemyMovementPath.append((red_blocks[i][0], red_blocks[i][1]))  # Save starting position
         while True:
             if breakLoop:
+                #final checks to see if the enemy unit has ended up on top of another unit
+                for k in range (len(blue_blocks)):
+                    if (red_blocks[i][0], red_blocks[i][1]) == (blue_blocks[k][0], blue_blocks[k][1]):
+                        print("inside blue block!")
+                        red_blocks[i][0] = EnemyMovementPath[-2][0]
+                        red_blocks[i][1] = EnemyMovementPath[-2][1]
+                        breakLoop = True
+                        break 
+
+                for l in range (len(red_blocks)):
+                    if i != l and (red_blocks[i][0], red_blocks[i][1]) == (red_blocks[l][0], red_blocks[l][1]):
+                        #print("I've ended up on top of another enemy unit!")
+                        red_blocks[i][0] = EnemyMovementPath[-2][0]
+                        red_blocks[i][1] = EnemyMovementPath[-2][1]
+                        breakLoop = True
+                        #print(bloc)
+                        break 
                 print("broke out!")
                 break
         #for j in range(AmountOfSteps): #amount of times to move
-            csleep(1000)
+            csleep(100)
             if nearest_blue_block:
                 if red_blocks[i][0] < nearest_blue_block[0]:
                     red_blocks[i][0] += 1
                 elif red_blocks[i][0] > nearest_blue_block[0]:
                     red_blocks[i][0] -= 1
                 
-                if red_blocks[i][1] < nearest_blue_block[1]:
+                elif red_blocks[i][1] < nearest_blue_block[1]:
                     red_blocks[i][1] += 1
                 elif red_blocks[i][1] > nearest_blue_block[1]:
                     red_blocks[i][1] -= 1
@@ -679,7 +696,7 @@ def EnemyTurn():
                     break
                 for k in range (len(blue_blocks)):
                     if (red_blocks[i][0], red_blocks[i][1]) == (blue_blocks[k][0], blue_blocks[k][1]):
-                        print("somethings wrong!")
+                        print("inside blue block!")
                         red_blocks[i][0] = EnemyMovementPath[-2][0]
                         red_blocks[i][1] = EnemyMovementPath[-2][1]
                         breakLoop = True
@@ -687,13 +704,30 @@ def EnemyTurn():
 
                 for l in range (len(red_blocks)):
                     if i != l and (red_blocks[i][0], red_blocks[i][1]) == (red_blocks[l][0], red_blocks[l][1]):
-                        print("I've ended up on top of another enemy unit!")
+                        #print("I've ended up on top of another enemy unit!")
                         red_blocks[i][0] = EnemyMovementPath[-2][0]
                         red_blocks[i][1] = EnemyMovementPath[-2][1]
                         breakLoop = True
                         #print(bloc)
                         break 
+            k = 0
+            l = 0
+            for k in range (len(blue_blocks)):
+                if (red_blocks[i][0], red_blocks[i][1]) == (blue_blocks[k][0], blue_blocks[k][1]):
+                    print("inside blue block!")
+                    red_blocks[i][0] = EnemyMovementPath[-2][0]
+                    red_blocks[i][1] = EnemyMovementPath[-2][1]
+                    breakLoop = True
+                    break 
 
+            for l in range (len(red_blocks)):
+                if i != l and (red_blocks[i][0], red_blocks[i][1]) == (red_blocks[l][0], red_blocks[l][1]):
+                    #print("I've ended up on top of another enemy unit!")
+                    red_blocks[i][0] = EnemyMovementPath[-2][0]
+                    red_blocks[i][1] = EnemyMovementPath[-2][1]
+                    breakLoop = True
+                    #print(bloc)
+                    break 
             DrawEverything()
 
             
