@@ -599,6 +599,7 @@ def draw_menu():
                       #  raise Exception("ActionMenu should be false")
                         controlok = True
                     else:
+                        print("ACTION 602")
                         ActionMenu = True
 
         if ActionMenu:
@@ -630,21 +631,131 @@ def draw_menu():
             
         pygame.display.update()
 
-
-
+def calculate_distance(x1, y1, x2, y2):
+    return ((x2 - x1)**2 + (y2 - y1)**2)**0.5
 
 
 
 def EnemyTurn():
+    EnemyMovementPath = []
+    AmountOfSteps = 4
     AdjacentBlocks.clear()
     for i in range(len(red_blocks)):
+        rangeout(AmountOfSteps+3, color=ORANGE, x=red_blocks[i][0], y=red_blocks[i][1])
+        csleep(1000)
+        nearest_blue_block = None
+        min_distance = None
+ 
+        for blue_block in blue_blocks:
+            distance = calculate_distance(red_blocks[i][0], red_blocks[i][1], blue_block[0], blue_block[1])
+ 
+            if min_distance is None or distance < min_distance:
+                nearest_blue_block = blue_block
+                min_distance = distance
+ 
+        # Move towards the nearest blue block
+        breakLoop = False
+        EnemyMovementPath.append((red_blocks[i][0], red_blocks[i][1]))  # Save starting position
+        while True:
+            if breakLoop:
+                #final checks to see if the enemy unit has ended up on top of another unit
+                for red_block in red_blocks:
+                    if tuple(red_block[:2]) in blue_blocks:
+                        print("inside blue block!")
+                        print("Final move")
+                        red_block[:2] = EnemyMovementPath[-2]
+                        breakLoop = True
+                        break
+                for l in range (len(red_blocks)):
+                    if i != l and (red_blocks[i][0], red_blocks[i][1]) == (red_blocks[l][0], red_blocks[l][1]):
+                        #print("I've ended up on top of another enemy unit!")
+                        print("Final move") 
+                        red_blocks[i][0] = EnemyMovementPath[-2][0]
+                        red_blocks[i][1] = EnemyMovementPath[-2][1]
+                        breakLoop = True
+                        #print(bloc)
+                        break 
+                print("broke out!")
+                DrawEverything()
+                break
+        #for j in range(AmountOfSteps): #amount of times to move
+            csleep(100)
+            if nearest_blue_block:
+                if red_blocks[i][0] < nearest_blue_block[0]:
+                    red_blocks[i][0] += 1
+                elif red_blocks[i][0] > nearest_blue_block[0]:
+                    red_blocks[i][0] -= 1
+ 
+                elif red_blocks[i][1] < nearest_blue_block[1]:
+                    red_blocks[i][1] += 1
+                elif red_blocks[i][1] > nearest_blue_block[1]:
+                    red_blocks[i][1] -= 1
+                EnemyMovementPath.append((red_blocks[i][0], red_blocks[i][1]))
+                #check if still inside adjacent blocks (range)
+                if (red_blocks[i][0], red_blocks[i][1]) not in AdjacentBlocks:
+                    break
+                for k in range (len(blue_blocks)):
+                    if (red_blocks[i][0], red_blocks[i][1]) == (blue_blocks[k][0], blue_blocks[k][1]):
+                        print("inside blue block!")
+                        red_blocks[i][0] = EnemyMovementPath[-2][0]
+                        red_blocks[i][1] = EnemyMovementPath[-2][1]
+                        breakLoop = True
+                        break 
+ 
+                for l in range (len(red_blocks)):
+                    if i != l and (red_blocks[i][0], red_blocks[i][1]) == (red_blocks[l][0], red_blocks[l][1]):
+                        #print("I've ended up on top of another enemy unit!")
+                        red_blocks[i][0] = EnemyMovementPath[-2][0]
+                        red_blocks[i][1] = EnemyMovementPath[-2][1]
+                        breakLoop = True
+                        #print(bloc)
+                        break 
+            k = 0
+            l = 0
+            for k in range (len(blue_blocks)):
+                if (red_blocks[i][0], red_blocks[i][1]) == (blue_blocks[k][0], blue_blocks[k][1]):
+                    print("inside blue block!")
+                    red_blocks[i][0] = EnemyMovementPath[-2][0]
+                    red_blocks[i][1] = EnemyMovementPath[-2][1]
+                    breakLoop = True
+                    break 
+ 
+            for l in range (len(red_blocks)):
+                if i != l and (red_blocks[i][0], red_blocks[i][1]) == (red_blocks[l][0], red_blocks[l][1]):
+                    #print("I've ended up on top of another enemy unit!")
+                    red_blocks[i][0] = EnemyMovementPath[-2][0]
+                    red_blocks[i][1] = EnemyMovementPath[-2][1]
+                    breakLoop = True
+                    #print(bloc)
+                    break 
+           # breakLoop = True
+            DrawEverything()
+ 
+ 
+ 
         #[[0, 0, 'Footsoldier', 100, 'Rank1Swords'], [1, 1, 'Footsoldier', 100, 'Rank1Swords']]
         #print(red_blocks)
-        rangeout(5, color=ORANGE, x=red_blocks[i][0], y=red_blocks[i][1])
-        csleep(5000)
+        #check if enemy unit is on top of another friendly unit
+ 
+        #check if enemy unit is on top of another enemy unit
+ 
+ 
+        '''
+        print("Enemy unit "+str(i)+" moved")
+        if red_blocks[i][0] == nearest_blue_block[0] and red_blocks[i][1] == nearest_blue_block[1]:
+            print("Enemy unit "+str(i)+" is attacking")
+            FightScene((nearest_blue_block[0], nearest_blue_block[1]))
+            #print("Enemy unit "+str(i)+" attacked")
+            #print(red_blocks)
+        '''
+        #csleep(1000)
+        #red_blocks[i][0] = EnemyMovementPath[-2][0]
+        #red_blocks[i][1] = EnemyMovementPath[-2][1]
+        #breakLoop = True
+        DrawEverything()
+        csleep(2000)
         AdjacentBlocks.clear()
         #print(i)
-
 ActionMenu = False
 
 def switch_turn():
@@ -723,7 +834,7 @@ while True:
     for i in range (len(blue_blocks)):
         MyRoster.append(blue_blocks[i][2])
     MyRoster.sort()
-    alreadygone.sort
+    alreadygone.sort()
     #print(MyRoster, alreadygone)
     global LastSelectedUnit
     global menu_options
@@ -873,6 +984,8 @@ while True:
                                             ###print(i)
                                             ###print("enemy unit adjacent")
                             if PlacedCorrectly and not selectingEnemy:
+                                selected_option = (selected_option + 1) % len(menu_options)
+                                print("ACTION 989")
                                 ActionMenu = True
                                 #draw_menu()
 
@@ -926,6 +1039,7 @@ while True:
 
     scaled_screen = pygame.transform.scale(screen, (WIDTH, HEIGHT))
     screen.blit(scaled_screen, (0, 0))
+    #print(alreadygone)
     DrawEverything()    
         #draw_square((cursor_row, cursor_col), GRID_SIZE, RED)
     clock.tick(FPS)
