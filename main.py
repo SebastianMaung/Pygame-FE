@@ -1,13 +1,18 @@
-import random
+#import random
 import pygame 
 #test 5
 #import pygame_menu 
-import time
+#import time
 import os 
+os.chdir(os.path.dirname(os.path.abspath(__file__))) #change directory to the folder this file is in
+print(os.getcwd())
+directory = 'assests/units/friendly/swordmaster-sword-a/'
+if not os.path.exists(directory):
+    raise Exception("Directory does not exist, currently in "+os.getcwd())
+    #os.makedirs(directory)
 main_game_running = True
 #pygame_menu controls
 #print(os.getcwd())
-#os.chdir("E:\WaterEmblem")
 #custom_theme = pygame_menu.themes.Theme(background_color=(0, 0, 0, 0))
 import sys #only used for sys.exit()
 def Constants():
@@ -638,7 +643,10 @@ def calculate_distance(x1, y1, x2, y2):
 
 
 def EnemyTurn():
-    start_cursor_blink()
+    stop_cursor_blink()
+    blinkingc = False
+    cursor_visible = False
+    #start_cursor_blink()
     EnemyMovementPath = []
     AmountOfSteps = 4
     AdjacentBlocks.clear()
@@ -761,6 +769,9 @@ def EnemyTurn():
 ActionMenu = False
 
 def switch_turn():
+    blinkingc = False
+    cursor_visible = False
+    stop_cursor_blink()
     pygame.display.flip()
     global main_game_running
     global Turn 
