@@ -1,5 +1,6 @@
 import random
 import pygame
+#test
 #import pygame_menu 
 import time
 import os 
@@ -559,7 +560,7 @@ def draw_menu():
         for i in range(len(adjacent_positions)):
             ##print(i)
             for block in red_blocks:
-                if adjacent_positions[i] == block[:2]:
+                if adjacent_positions[i] == block[:1]:
                     ##print(i)
                     ##print(block[:2], "LINE 593")
                     AdjacentBlocks.append(block[:2])
@@ -637,6 +638,7 @@ def calculate_distance(x1, y1, x2, y2):
 
 
 def EnemyTurn():
+    start_cursor_blink()
     EnemyMovementPath = []
     AmountOfSteps = 4
     AdjacentBlocks.clear()
