@@ -1,6 +1,6 @@
 import random
-import pygame
-#test
+import pygame 
+#test 2
 #import pygame_menu 
 import time
 import os 
